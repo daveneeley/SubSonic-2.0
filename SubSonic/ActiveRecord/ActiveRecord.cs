@@ -160,7 +160,7 @@ namespace SubSonic
         /// Saves this object's state to the selected Database.
         /// </summary>
         /// <param name="userName">Name of the user.</param>
-        public void Save(string userName)
+        public virtual void Save(string userName)
         {
             bool isValid = true;
 
