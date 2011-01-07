@@ -162,6 +162,21 @@ namespace <%=nSpace %>{
 	    }
 	    %>
 	    #endregion
+
+        #region Typed Columns
+        <%
+        for(int i = 0; i < cols.Count; i++)
+        {%>
+        
+        public static TableSchema.TableColumn <%=cols[i].PropertyName%>Column
+        {
+            get { return Schema.Columns[<%=i%>]; }
+        }
+        
+        <%
+        }%>
+        
+        #endregion
     
 	    #region Columns Struct
 	    public struct Columns
