@@ -778,8 +778,12 @@ namespace SubSonic
         {
             if(ddlProviders.Items.Count == 0)
             {
-                foreach(DataProvider p in DataService.Providers)
-                    ddlProviders.Items.Add(p.Name);
+                SortedList<string, string> sl = new SortedList<string, string>();
+                foreach (DataProvider p in DataService.Providers)
+                    sl.Add(p.Name, p.Name);
+
+                foreach (KeyValuePair<string, string> kvp in sl)
+                    ddlProviders.Items.Add(kvp.Value);
             }
         }
 
