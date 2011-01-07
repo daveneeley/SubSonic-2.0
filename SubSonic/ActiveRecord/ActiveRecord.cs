@@ -14,6 +14,7 @@
 
 using System;
 using System.Data;
+using System.Text;
 
 namespace SubSonic
 {
@@ -215,11 +216,11 @@ namespace SubSonic
             else
             {
                 // throw an Exception
-                string notification = String.Empty;
-                foreach(string message in Errors)
-                    notification += message + Environment.NewLine;
+				StringBuilder sb = new StringBuilder();
+				foreach (string message in Errors)
+					sb.AppendLine(message);
 
-                throw new Exception("Can't save: " + notification);
+                throw new Exception("Can't save: " + sb.ToString());
             }
         }
 
