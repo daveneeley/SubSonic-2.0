@@ -72,19 +72,19 @@ namespace <%=p.GeneratedNamespace%>
     #region Query Factories
 	public static partial class DB
 	{
-        public static DataProvider _provider = DataService.Providers["<%=p.Name%>"];
-        static ISubSonicRepository _repository;
+        public static DataProvider m_provider = DataService.Providers["<%=p.Name%>"];
+        static ISubSonicRepository m_repository;
 
         public static ISubSonicRepository Repository 
         {
             get 
             {
-                if (_repository == null)
-                    return new SubSonicRepository(_provider);
+                if (m_repository == null)
+                    return new SubSonicRepository(m_provider);
 
-                return _repository; 
+                return m_repository; 
             }
-            set { _repository = value; }
+            set { m_repository = value; }
         }
 
         public static Select SelectAllColumnsFrom<T>() where T : RecordBase<T>, new()
