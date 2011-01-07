@@ -86,6 +86,7 @@ namespace SubSonic
 
         private string _manyToManyMap;
         private bool _showScaffoldCaption = true;
+        private int _recordsPerPage = 0;
         private string _textBoxCssClass = ScaffoldCss.TEXT_BOX;
         private List<Where> _whereCollection;
         private string _whereExpression = String.Empty;
@@ -149,6 +150,17 @@ namespace SubSonic
             get { return grid; }
         }
 
+        /// <summary>
+        /// Records per page
+        /// </summary>
+        /// <value>Record number.</value>
+        [DefaultValue("50")]
+        public int RecordsPerPage
+        {
+            get { return _recordsPerPage; }
+            set { _recordsPerPage = value; }
+        }
+       
         /// <summary>
         /// Gets or sets the delete confirm.
         /// </summary>
@@ -566,6 +578,15 @@ namespace SubSonic
             Controls.Add(surroundingPanel);
             surroundingPanel.Controls.Clear();
 
+            //paging
+            grid.PageIndexChanging += new GridViewPageEventHandler(grid_PageIndexChanging);
+            if (_recordsPerPage > 0)
+            {
+                grid.AllowPaging = true;
+                grid.PagerSettings.Mode = PagerButtons.NumericFirstLast;
+                grid.PageSize = _recordsPerPage;
+            }
+
             Label lblTitle = new Label {ID = "lblTitle"};
             surroundingPanel.Controls.Add(lblTitle);
             lblTitle.Visible = true;
@@ -717,6 +738,17 @@ namespace SubSonic
             ViewState[SCAFFOLD_MODE] = Mode;
             if(Mode != ScaffoldMode.Edit)
                 PrimaryKeyValue = String.Empty;
+        }
+
+        /// <summary>
+        /// grid_PageIndexChanging
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected virtual void grid_PageIndexChanging(Object sender, GridViewPageEventArgs e)
+        {
+            grid.PageIndex = e.NewPageIndex;
+            BindGrid(grid.SortExpression);
         }
 
         /// <summary>
@@ -1261,6 +1293,11 @@ namespace SubSonic
                             ViewState[SORT_DIRECTION] = SqlFragment.DESC;
                         }
                     }
+                }
+
+                if (RecordsPerPage > 0)
+                {
+                    query = query.Paged(grid.PageIndex, RecordsPerPage);
                 }
 
                 DataTable dt = query.ExecuteJoinedDataSet().Tables[0];
