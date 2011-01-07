@@ -790,10 +790,14 @@ namespace SubSonic
                 if(!String.IsNullOrEmpty(ProviderName))
                 {
                     //ddlTables.Items.Clear();
+                    DataService.ClearSchemaCache(ProviderName);
                     TableSchema.Table[] tables = DataService.GetTables(ProviderName);
                     foreach(TableSchema.Table table in tables)
                     {
-                        if(CodeService.ShouldGenerate(table))
+                        //should generate expects that the table is not null
+                        //however, GetTables can return a null table if it's been
+                        //added to the database after the in memory list was generated
+                        if(table != null && CodeService.ShouldGenerate(table))
                         {
                             if(table.PrimaryKey != null && table.PrimaryKeys.Length > 0)
                             {
