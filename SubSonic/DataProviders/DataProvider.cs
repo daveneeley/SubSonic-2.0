@@ -772,6 +772,15 @@ namespace SubSonic
         public abstract TableSchema.Table GetTableSchema(string tableName, TableType tableType);
 
         /// <summary>
+        /// Gets the table schema.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="tableType">Type of the table.</param>
+        /// <param name="useCached">Use the cached version of the database schema.</param>
+        /// <returns></returns>
+        public abstract TableSchema.Table GetTableSchema(string tableName, TableType tableType, bool useCached);
+
+        /// <summary>
         /// Gets the SP list.
         /// </summary>
         /// <returns></returns>
@@ -784,6 +793,11 @@ namespace SubSonic
         public abstract string[] GetTableNameList();
 
         /// <summary>
+        /// Gets the table name list
+        /// </summary>
+        /// <param name="useCached">use a cached copy of the table names</param>
+        /// <returns></returns>
+        public abstract string[] GetTableNameList(bool useCached);
         /// Gets the view name list.
         /// </summary>
         /// <returns></returns>

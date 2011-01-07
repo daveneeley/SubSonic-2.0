@@ -361,6 +361,18 @@ namespace SubSonic
         /// <returns></returns>
         public override TableSchema.Table GetTableSchema(string tableName, TableType tableType)
         {
+            return GetTableSchema(tableName, tableType, true);
+        }
+
+        /// <summary>
+        /// Gets the table schema.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="tableType">Type of the table.</param>
+        /// <param name="useCached">IGNORED FOR ORACLE. Use the cached version of the database schema.</param>
+        /// <returns></returns>
+        public override TableSchema.Table GetTableSchema(string tableName, TableType tableType, bool useCached)
+        {
             TableSchema.TableColumnCollection columns = new TableSchema.TableColumnCollection();
             TableSchema.Table tbl = new TableSchema.Table(tableName, tableType, this);
             //tbl.ClassName = Convention.ClassName(tableName);
@@ -501,24 +513,41 @@ namespace SubSonic
         /// <returns></returns>
         public override string[] GetTableNameList()
         {
-            QueryCommand cmd = new QueryCommand(TABLE_SQL, Name);
-            StringBuilder sList = new StringBuilder();
-            using(IDataReader rdr = DataService.GetReader(cmd))
-            {
-                bool isFirst = true;
-                while(rdr.Read())
-                {
-                    if(!isFirst)
-                        sList.Append(DELIMITER);
+            return GetTableNameList(false);
+        }
 
-                    isFirst = false;
-                    sList.Append(rdr[SqlSchemaVariable.NAME]);
+        /// <summary>
+        /// Gets the table name list
+        /// </summary>
+        /// <param name="useCached">use a cached copy of the table names. default is false</param>
+        /// <returns></returns>
+        public override string[] GetTableNameList(bool useCached)
+        {
+            if (TableNames == null || !useCached)
+            {
+                QueryCommand cmd = new QueryCommand(TABLE_SQL, Name);
+                StringBuilder sList = new StringBuilder();
+                using(IDataReader rdr = DataService.GetReader(cmd))
+                {
+                    bool isFirst = true;
+                    while(rdr.Read())
+                    {
+                        if(!isFirst)
+                            sList.Append(DELIMITER);
+
+                        isFirst = false;
+                        sList.Append(rdr[SqlSchemaVariable.NAME]);
+                    }
+                    rdr.Close();
                 }
-                rdr.Close();
+                string[] strArray = sList.ToString().Split(DELIMITER.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                Array.Sort(strArray);
+                if (CurrentConnectionStringIsDefault)
+                    TableNames = strArray;
+                else
+                    return strArray;
             }
-            string[] strArray = sList.ToString().Split(DELIMITER.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            Array.Sort(strArray);
-            return strArray;
+            return TableNames;
         }
 
         /// <summary>

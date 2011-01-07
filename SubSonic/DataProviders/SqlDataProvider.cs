@@ -577,33 +577,48 @@ ORDER BY OrdinalPosition ASC";
         }
 
         /// <summary>
-        /// Gets the table schema.
+        /// Gets the table schema. A cached version of the schema is used if available.
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="tableType">Type of the table.</param>
         /// <returns></returns>
         public override TableSchema.Table GetTableSchema(string tableName, TableType tableType)
         {
+            return GetTableSchema(tableName, tableType, true);
+        }
+
+        /// <summary>
+        /// Gets the table schema.
+        /// </summary>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="tableType">Type of the table.</param>
+        /// <param name="useCached">Use the cached version of the database schema.</param>
+        /// <returns></returns>
+        public override TableSchema.Table GetTableSchema(string tableName, TableType tableType, bool useCached)
+        {
             TableSchema.TableColumnCollection columns = new TableSchema.TableColumnCollection();
 
-            if(dsColumns.Tables[Name] == null)
+            if(dsColumns.Tables[Name] == null || !useCached)
             {
                 lock(_lockColumns)
                 {
-                    if(dsColumns.Tables[Name] == null)
-                    {
-                        QueryCommand cmdColumns = new QueryCommand(TABLE_COLUMN_SQL_ALL, Name);
-                        DataTable dt = new DataTable(Name);
-                        dt.Load(GetReader(cmdColumns));
-                        dsColumns.Tables.Add(dt);
-                    }
+                    if (dsColumns.Tables[Name] != null)
+                        dsColumns.Tables.Remove(dsColumns.Tables[Name]);
+
+                    QueryCommand cmdColumns = new QueryCommand(TABLE_COLUMN_SQL_ALL, Name);
+                    DataTable dt = new DataTable(Name);
+                    dt.Load(GetReader(cmdColumns));
+                    dsColumns.Tables.Add(dt);
                 }
             }
 
             DataRow[] drColumns = dsColumns.Tables[Name].Select(String.Format("TableName ='{0}'", tableName), "OrdinalPosition ASC");
 
-            if(drColumns.Length == 0)
-                return null;
+            if (drColumns.Length == 0)
+            {
+                throw new ArgumentNullException("columns", string.Format("The table '{0}' has no columns specified. This could happen if the table was added to the database AFTER the in-memory list was already generated.", tableName));
+                //return null;
+            }
 
             TableSchema.Table tbl = new TableSchema.Table(tableName, tableType, this);
             SetExtendedTableProperties(tbl);
@@ -879,29 +894,37 @@ ORDER BY OrdinalPosition ASC";
         /// <returns></returns>
         public override string[] GetTableNameList()
         {
-            //Need this fresh - RC
+            return GetTableNameList(false);
+        }
 
-            //if (TableNames == null || !CurrentConnectionStringIsDefault)
-            //{
-            QueryCommand cmd = new QueryCommand(String.Concat("/* GetTableNameList() */ ", TABLE_SQL), Name);
-            StringBuilder sList = new StringBuilder();
-            using(IDataReader rdr = GetReader(cmd))
+        /// <summary>
+        /// Gets the table name list
+        /// </summary>
+        /// <param name="useCached">use a cached copy of the table names. default is false</param>
+        /// <returns></returns>
+        public override string[] GetTableNameList(bool useCached)
+        {
+            if (TableNames == null || !useCached)
             {
-                while(rdr.Read())
+                QueryCommand cmd = new QueryCommand(String.Concat("/* GetTableNameList() */ ", TABLE_SQL), Name);
+                StringBuilder sList = new StringBuilder();
+                using(IDataReader rdr = GetReader(cmd))
                 {
-                    sList.Append(rdr[SqlSchemaVariable.NAME]);
-                    sList.Append("|");
+                    while(rdr.Read())
+                    {
+                        sList.Append(rdr[SqlSchemaVariable.NAME]);
+                        sList.Append("|");
+                    }
+                    rdr.Close();
                 }
-                rdr.Close();
+                string strList = sList.ToString();
+                string[] tempTableNames = strList.Split(new char[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                Array.Sort(tempTableNames);
+                if(CurrentConnectionStringIsDefault)
+                    TableNames = tempTableNames;
+                else
+                    return tempTableNames;
             }
-            string strList = sList.ToString();
-            string[] tempTableNames = strList.Split(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
-            Array.Sort(tempTableNames);
-            if(CurrentConnectionStringIsDefault)
-                TableNames = tempTableNames;
-            else
-                return tempTableNames;
-            //}
             return TableNames;
         }
 
