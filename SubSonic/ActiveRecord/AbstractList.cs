@@ -426,6 +426,17 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Adds the passed column and value as a Where clause for collection loading.
+        /// </summary>
+        /// <param name="col">The Table Column for the clause</param>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public ListType Where(TableSchema.TableColumn col, object value)
+        {
+            return Where(col.ColumnName, value);
+        }
+
+        /// <summary>
         /// Adds the passed column, comparision type, and value as a Where clause for collection loading.
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
@@ -440,6 +451,17 @@ namespace SubSonic
             where.ParameterValue = value;
             Where(where);
             return this as ListType;
+        }
+
+        /// <summary>
+        /// Adds the table column, comparison type, and value as a Where clause for collection loading
+        /// </summary>
+        /// <param name="col">TableColumn to evaluate in the clause</param>
+        /// <param name="comp">The comparison to be performed in the clause</param>
+        /// <param name="value">The value to match in the clause</param>
+        public ListType Where(TableSchema.TableColumn col, Comparison comp, object value)
+        {
+            return Where(col.ColumnName, comp, value);
         }
 
         /// <summary>
