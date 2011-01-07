@@ -66,7 +66,32 @@ namespace <%=provider.GeneratedNamespace%>
 		public <%=className%>Collection() {}
         
         /// <summary>
-		/// Filters an existing collection based on the set criteria. This is an in-memory filter
+		/// Filters an existing collection based on the set criteria. This is an in-memory filter.
+		/// All existing wheres are retained.
+        /// </summary>
+        /// <returns><%=className%>Collection</returns>
+		public <%=className%>Collection Filter(SubSonic.Where w)
+        {
+			return Filter(w, false);
+		}
+		
+        /// <summary>
+		/// Filters an existing collection based on the set criteria. This is an in-memory filter.
+		/// Existing wheres can be cleared if not needed.
+        /// </summary>
+        /// <returns><%=className%>Collection</returns>
+		public <%=className%>Collection Filter(SubSonic.Where w, bool clearWheres)
+        {
+			if (clearWheres)
+			{
+				this.wheres.Clear();
+			}
+			this.wheres.Add(w);
+			return Filter();
+		}
+		
+        /// <summary>
+		/// Filters an existing collection based on the set criteria. This is an in-memory filter.
 		/// Thanks to developingchris for this!
         /// </summary>
         /// <returns><%=className%>Collection</returns>
@@ -79,20 +104,26 @@ namespace <%=provider.GeneratedNamespace%>
                 {
                     bool remove = false;
                     System.Reflection.PropertyInfo pi = o.GetType().GetProperty(w.ColumnName);
-                    if (pi.CanRead)
+                    if (pi != null && pi.CanRead)
                     {
                         object val = pi.GetValue(o, null);
-                        switch (w.Comparison)
+                        if (w.ParameterValue is Array)
                         {
-                            case SubSonic.Comparison.Equals:
-                                if (!val.Equals(w.ParameterValue))
-                                {
-                                    remove = true;
-                                }
-                                break;
+                            Array paramValues = (Array)w.ParameterValue;
+                            foreach (object arrayVal in paramValues)
+                            {
+                                remove = !Utility.IsMatch(w.Comparison, val, arrayVal);
+                                if (remove)
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            remove = !Utility.IsMatch(w.Comparison, val, w.ParameterValue);
                         }
                     }
-
+					
+					
                     if (remove)
                     {
                         this.Remove(o);
