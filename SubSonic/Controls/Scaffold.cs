@@ -516,7 +516,7 @@ namespace SubSonic
                     ViewState[SCAFFOLD_MODE] = ScaffoldMode.List;
                 return (ScaffoldMode)ViewState[SCAFFOLD_MODE];
             }
-            protected set { ViewState[SCAFFOLD_MODE] = value; }
+            set { ViewState[SCAFFOLD_MODE] = value; }
         }
 
         /// <summary>
@@ -722,7 +722,7 @@ namespace SubSonic
                 pnlEditor.Visible = true;
                 pnlGrid.Visible = false;
                 btnSave.Visible = true;
-                btnCancel.Visible = true;
+				btnCancel.Visible = ReturnOnSave;
                 btnDelete.Visible = false;
                 lblTitle.Visible = !ShowScaffoldCaption;
             }
@@ -1367,15 +1367,25 @@ namespace SubSonic
         /// </summary>
         private void SaveEditor()
         {
-            if(Mode == ScaffoldMode.Edit)
-                UpdateRecord(PrimaryKeyControlValue);
-            else
-                InsertRecord();
+            try
+            {
+                if (Mode == ScaffoldMode.Edit)
+                    UpdateRecord(PrimaryKeyControlValue);
+                else
+                    InsertRecord();
 
-            SaveManyToMany();
+                SaveManyToMany();
 
-            if(ReturnOnSave)
-                BuildWithModeChange(ScaffoldMode.List);
+                OnEditorSaved(new EventArgs());
+
+                if (ReturnOnSave)
+                    BuildWithModeChange(ScaffoldMode.List);
+            }
+            catch (Exception ex)
+            {
+                EventArgs e = new EventArgs();
+                OnEditorFailed(new ScaffoldEventArgs("Editor failed to save.", ex));
+            }
         }
 
         /// <summary>
@@ -1587,6 +1597,40 @@ namespace SubSonic
             BindGrid(columnName);
         }
 
+		/// <summary>
+		/// The Editor Saved event
+		/// </summary>
+		public event EventHandler EditorSaved;
+
+		/// <summary>
+		/// The event that is raised when the editor is successfully saved.
+		/// </summary>
+		/// <param name="e"></param>
+		protected void OnEditorSaved(EventArgs e)
+		{
+			if (EditorSaved != null)
+			{
+				EditorSaved(this, e);
+			}
+		}
+
+        /// <summary>
+        /// The Editor Failed event
+        /// </summary>
+        public event EventHandler EditorFailed;
+
+        /// <summary>
+        /// The event that is raised when the editor failed to save.
+        /// </summary>
+        /// <param name="e"></param>
+        protected void OnEditorFailed(EventArgs e)
+        {
+            if (EditorFailed != null)
+            {
+                EditorFailed(this, e);
+            }
+        }
+
         /// <summary>
         /// Handles the Click event of the btnCancel control.
         /// </summary>
@@ -1607,7 +1651,8 @@ namespace SubSonic
             try
             {
                 SaveEditor();
-                BuildWithModeChange(ScaffoldMode.List);
+				//this is handled in SaveEditor() and should not be forced!
+                //BuildWithModeChange(ScaffoldMode.List);
             }
             catch(DbException x)
             {
@@ -1622,8 +1667,15 @@ namespace SubSonic
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void btnDelete_Click(object sender, EventArgs e)
         {
-            DeleteRecord();
-            BuildWithModeChange(ScaffoldMode.List);
+            try
+            {
+                DeleteRecord();
+                BuildWithModeChange(ScaffoldMode.List);
+            }
+            catch (Exception ex)
+            {
+                OnEditorFailed(new ScaffoldEventArgs("Editor failed to delete.", ex));
+            }
         }
 
         /// <summary>
@@ -1655,5 +1707,53 @@ namespace SubSonic
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Class used to send messages from the scaffold control
+    /// </summary>
+    public class ScaffoldEventArgs : EventArgs
+    {
+        private string m_message = string.Empty;
+        private Exception m_exception = null;
+
+        /// <summary>
+        /// Creates a new ScaffoldEventArgs
+        /// </summary>
+        /// <param name="message"></param>
+        public ScaffoldEventArgs(string message)
+        {
+            m_message = message;
+        }
+
+        /// <summary>
+        /// Creates a new ScaffoldEventArgs
+        /// </summary>
+        /// <param name="message">Message to include</param>
+        /// <param name="ex">Exception thrown</param>
+        public ScaffoldEventArgs(string message, Exception ex)
+        {
+            m_message = message;
+            m_exception = ex;
+        }
+
+        /// <summary>
+        /// Message returned by the scaffold editor
+        /// </summary>
+        public string Message
+        {
+            get { return m_message; }
+            set { m_message = value; }
+        }
+
+        /// <summary>
+        /// An exception thrown by the scaffold editor
+        /// </summary>
+        public Exception Exception
+        {
+            get { return m_exception; }
+            set { m_exception = value; }
+        }
+
     }
 }
