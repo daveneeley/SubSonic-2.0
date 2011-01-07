@@ -148,7 +148,8 @@ namespace SubSonic
                 if(ascending)
                     sort = ListSortDirection.Ascending;
 
-                ApplySortCore(myProperty, sort);
+                if (myProperty != null)
+                    ApplySortCore(myProperty, sort);
             }
         }
 
