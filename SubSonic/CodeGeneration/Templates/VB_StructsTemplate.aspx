@@ -70,19 +70,19 @@ Namespace <%=p.GeneratedNamespace%>
 		Private Sub New()
 		End Sub
 
-		Public Shared _provider As DataProvider = DataService.Providers("<%=p.Name %>")
-		Private Shared _repository As ISubSonicRepository
+		Public Shared m_provider As DataProvider = DataService.Providers("<%=p.Name %>")
+		Private Shared m_repository As ISubSonicRepository
 
 		Public Shared Property Repository() As ISubSonicRepository
 			Get
-				If _repository Is Nothing Then
-					Return New SubSonicRepository(_provider)
+				If m_repository Is Nothing Then
+					Return New SubSonicRepository(m_provider)
 				End If
 
-				Return _repository
+				Return m_repository
 			End Get
 			Set
-				_repository = Value
+				m_repository = Value
 			End Set
 		End Property
 
