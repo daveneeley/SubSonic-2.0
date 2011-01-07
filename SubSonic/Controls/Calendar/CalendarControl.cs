@@ -190,29 +190,53 @@ namespace SubSonic
             base.OnPreRender(e);
         }
 
+        private string m_wrapperCssClass;
+
+        /// <summary>
+        /// Declare the CSS Class for the object that wraps the text box and calendar popup button
+        /// </summary>
+        [DefaultValue("")]
+        public string WrapperCssClass
+        {
+            get { return m_wrapperCssClass; }
+            set { m_wrapperCssClass = value; }
+        }
+
+        /// <summary>
+        /// Available modes for rendering the control.
+        /// </summary>
+        public enum RenderModes
+        {
+            Table,
+            Inline
+        }
+
+        private RenderModes m_renderMode;
+        /// <summary>
+        /// Specifies the mode used to render the control.
+        /// </summary>
+        [DefaultValue(RenderModes.Table)]
+        public RenderModes RenderMode
+        {
+            get { return m_renderMode; }
+            set { m_renderMode = value; }
+        }
         /// <summary>
         /// Renders the <see cref="T:System.Web.UI.WebControls.TextBox"/> control to the specified <see cref="T:System.Web.UI.HtmlTextWriter"/> object.
         /// </summary>
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter"/> that receives the rendered output.</param>
         protected override void Render(HtmlTextWriter writer)
         {
-            if(SelectedDate == DateTime.MinValue)
-                SelectedDate = DateTime.Now;
-
-            writer.WriteLine("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">");
-            writer.WriteLine("<tr>");
-            writer.WriteLine("<td>");
-
-            base.Render(writer);
-
-            writer.WriteLine("</td><td>");
-
-            if(Enabled)
-                CalendarImage.RenderControl(writer); // render CalendarButton object
-
-            writer.WriteLine("</td>");
-            writer.WriteLine("</tr>");
-            writer.WriteLine("</table>");
+            switch (RenderMode)
+            {
+                case RenderModes.Inline:
+                    RenderAsDiv(writer);
+                    break;
+                case RenderModes.Table:
+                default:
+                    RenderAsTable(writer);
+                    break;
+            }
 
             if(Enabled)
             {
@@ -228,5 +252,42 @@ namespace SubSonic
                     "</script>");
             }
         }
+
+        private void RenderAsDiv(HtmlTextWriter writer)
+        {
+            if (SelectedDate == DateTime.MinValue)
+                SelectedDate = DateTime.Now;
+
+            writer.WriteLine("<div{0}>", (!String.IsNullOrEmpty(WrapperCssClass) ? " class=\"" + WrapperCssClass + "\"" : "") );
+
+            base.Render(writer);//renders the text box that displays the selected date
+
+            if (Enabled)
+                CalendarImage.RenderControl(writer); // render CalendarButton object
+
+            writer.WriteLine("</div>");
+        }
+
+        private void RenderAsTable(HtmlTextWriter writer)
+        {
+            if (SelectedDate == DateTime.MinValue)
+                SelectedDate = DateTime.Now;
+
+            writer.WriteLine("<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"{0}>", (!String.IsNullOrEmpty(CssClass) ? " class=\"" + CssClass + "\"" : ""));
+            writer.WriteLine("<tr>");
+            writer.WriteLine("<td>");
+
+            base.Render(writer);
+
+            writer.WriteLine("</td><td>");
+
+            if (Enabled)
+                CalendarImage.RenderControl(writer); // render CalendarButton object
+
+            writer.WriteLine("</td>");
+            writer.WriteLine("</tr>");
+            writer.WriteLine("</table>");
+        }
+
     }
 }
