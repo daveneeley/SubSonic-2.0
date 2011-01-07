@@ -237,12 +237,24 @@ namespace SubSonic
         /// <param name="columnName">Name of the column to find in</param>
         /// <param name="key">Key to search for</param>
         /// <returns></returns>
-        public int Find(string columnName, object key)
+		public int Find(string columnName, object key)
+		{
+			return Find(columnName, key, false);
+		}
+
+		/// <summary>
+        /// Finds the first record matching the key
+        /// </summary>
+        /// <param name="columnName">Name of the column to find in</param>
+        /// <param name="key">Key to search for</param>
+        /// <returns></returns>
+        public int Find(string columnName, object key, bool ignoreCase)
         {
             PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(new ItemType());
-            PropertyDescriptor myProperty = properties.Find(columnName, false);
+            //always ignore case here, since we're looking for property names
+			PropertyDescriptor myProperty = properties.Find(columnName, false);
 
-            return FindCore(myProperty, key);
+            return FindCore(myProperty, key, ignoreCase);
         }
 
         /// <summary>

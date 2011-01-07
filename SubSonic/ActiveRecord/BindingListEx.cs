@@ -167,7 +167,18 @@ namespace SubSonic
         /// <param name="property">The property.</param>
         /// <param name="key">The key.</param>
         /// <returns></returns>
-        protected override int FindCore(PropertyDescriptor property, object key)
+		protected override int FindCore(PropertyDescriptor property, object key)
+		{
+			return FindCore(property, key, false);
+		}
+
+		/// <summary>
+        /// Finds the core.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="key">The key.</param>
+        /// <returns></returns>
+        protected int FindCore(PropertyDescriptor property, object key, bool ignoreCase)
         {
             // Specify search columns
             if(property == null)
@@ -186,7 +197,7 @@ namespace SubSonic
 
                     // If value is the search value, return the 
                     // index of the data item
-                    if(key.Equals(value))
+                    if(key.Equals(value) || (ignoreCase && value.GetType() == typeof(String) && SubSonic.Utilities.Utility.IsMatch(key.ToString(), value.ToString())))
                         return IndexOf(item);
                 }
             }
