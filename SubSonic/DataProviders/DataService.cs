@@ -414,23 +414,10 @@ namespace SubSonic
                         {
                             while(rdr.Read())
                             {
-                                try
-                                {
-                                    object objSchema = rdr["SPSchema"];
-                                    if(objSchema != null)
-                                        sp.SchemaName = objSchema.ToString();
-
-                                }
-                                catch (Exception)
-                                {
-                                    
-                                    //throw;
-                                    //no throw here
-                                }
+                                object objSchema = rdr["SPSchema"];
+                                if(objSchema != null)
+                                    sp.SchemaName = objSchema.ToString();
                                 StoredProcedure.Parameter par = new StoredProcedure.Parameter();
-                                
-
-
                                 provider.SetParameter(rdr, par);
                                 par.QueryParameter = provider.MakeParam(par.Name);
                                 par.DisplayName = Utility.GetParameterName(par.Name, provider);
@@ -438,6 +425,14 @@ namespace SubSonic
                             }
                             rdr.Close();
                         }
+                        _sps.Add(sp);
+                        generatedSprocs++;
+                    }
+                }
+                Utility.WriteTrace(String.Format("Finished! {0} of {1} procedures generated.", generatedSprocs, sps.GetLength(0)));
+            }
+            return _sps;
+        }
                         _sps.Add(sp);
                         generatedSprocs++;
                     }
@@ -625,7 +620,7 @@ namespace SubSonic
         }
 
         /// <summary>
-        /// Gets the schema.
+        /// Gets the schema. The cached version is always used if it exists.
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
@@ -646,9 +641,12 @@ namespace SubSonic
             {
                 //look it up
                 //when done, add it to the collection
-                result = provider.GetTableSchema(tableName, tableType);
-                if(result != null)
+                result = provider.GetTableSchema(tableName, tableType, true);
+                if (result != null)
                     provider.AddSchema(tableName, result);
+                //if no schema couild be returned for the table, don't fail
+                else
+                    Utility.WriteTrace("You tried to get the schema of a table that wasn't already in memory, and the operation failed. The table name was '" + tableName ?? "" + "'.");
             }
             return result;
         }
@@ -684,6 +682,17 @@ namespace SubSonic
         public static string[] GetTableNames(string providerName)
         {
             return GetInstance(providerName).GetTableNameList();
+        }
+
+        /// <summary>
+        /// Gets the table names.
+        /// </summary>
+        /// <param name="providerName">Name of the provider.</param>
+        /// <param name="useCached">Use a cached version of the table list, if available.</param>
+        /// <returns></returns>
+        public static string[] GetTableNames(string providerName, bool useCached)
+        {
+            return GetInstance(providerName).GetTableNameList(useCached);
         }
 
         /// <summary>
@@ -746,13 +755,31 @@ namespace SubSonic
         /// <returns></returns>
         public static TableSchema.Table[] GetTables(string providerName)
         {
-            string[] tableNames = GetTableNames(providerName);
-            TableSchema.Table[] tables = new TableSchema.Table[tableNames.Length];
+            return GetTables(providerName, false);
+        }
 
-            for(int i = 0; i < tables.Length; i++)
-                tables[i] = GetSchema(tableNames[i], providerName, TableType.Table);
-
-            return tables;
+        /// <summary>
+        /// Gets the tables.
+        /// </summary>
+        /// <param name="providerName">Name of the provider.</param>
+        /// <returns></returns>
+        public static TableSchema.Table[] GetTables(string providerName, bool useCached)
+        {
+            string[] tableNames = GetTableNames(providerName, useCached);
+            List<TableSchema.Table> tableList = new List<TableSchema.Table>();
+            for (int i = 0; i < tableNames.Length; i++)
+            {
+                TableSchema.Table t = GetSchema(tableNames[i], providerName, TableType.Table);
+                if (t != null)
+                {
+                    tableList.Add(t);
+                }
+                else
+                {
+                    Utility.WriteTrace(String.Format("Null schema returned for table named '{0}'.", tableNames[i]));
+                }
+            }
+            return tableList.ToArray();
         }
 
         /// <summary>
@@ -789,12 +816,22 @@ namespace SubSonic
         public static TableSchema.Table[] GetViews(string providerName)
         {
             string[] viewNames = GetViewNames(providerName);
-            TableSchema.Table[] views = new TableSchema.Table[viewNames.Length];
 
-            for(int i = 0; i < views.Length; i++)
-                views[i] = GetSchema(viewNames[i], providerName, TableType.View);
+            List<TableSchema.Table> viewList = new List<TableSchema.Table>();
+            for (int i = 0; i < viewNames.Length; i++)
+            {
+                TableSchema.Table t = GetSchema(viewNames[i], providerName, TableType.Table);
+                if (t != null)
+                {
+                    viewList.Add(t);
+                }
+                else
+                {
+                    Utility.WriteTrace(String.Format("Null schema returned for view named '{0}'.", viewNames[i]));
+                }
+            }
+            return viewList.ToArray();
 
-            return views;
         }
 
         /// <summary>
