@@ -241,7 +241,7 @@ namespace SubSonic.Sugar
         /// </summary>
         /// <param name="list">The list.</param>
         /// <returns></returns>
-        public static string ToDelimitedList(List<string> list)
+        public static string ToDelimitedList(IList<string> list)
         {
             return ToDelimitedList(list, ",");
         }
@@ -252,7 +252,7 @@ namespace SubSonic.Sugar
         /// <param name="list">The list.</param>
         /// <param name="delimiter">The delimiter.</param>
         /// <returns></returns>
-        public static string ToDelimitedList(List<string> list, string delimiter)
+        public static string ToDelimitedList(IList<string> list, string delimiter)
         {
             StringBuilder sb = new StringBuilder();
             foreach(string s in list)
