@@ -266,6 +266,73 @@ namespace SubSonic.Utilities
             return String.Equals(stringA, stringB, StringComparison.InvariantCultureIgnoreCase);
         }
 
+		public static bool IsMatch(SubSonic.Comparison compare, object objA, object objB)
+		{
+			if (objA.GetType() != objB.GetType())
+				return false;
+
+			bool isIntegerVal = (typeof(int) == objA.GetType());
+			bool isDateTimeVal = (typeof(DateTime) == objA.GetType());
+
+            switch (compare)
+            {
+				case SubSonic.Comparison.In:
+                case SubSonic.Comparison.Equals:
+					if (objA.GetType() == typeof(string))
+						return IsMatch((string)objA, (string)objB);
+					else
+						return objA.Equals(objB);
+				case SubSonic.Comparison.NotIn:
+				case SubSonic.Comparison.NotEquals:
+					return !objA.Equals(objB);
+				case SubSonic.Comparison.Like:
+					return objA.ToString().Contains(objB.ToString());
+				case SubSonic.Comparison.NotLike:
+					return !objA.ToString().Contains(objB.ToString());
+				case SubSonic.Comparison.GreaterThan:
+					if (isIntegerVal)
+					{
+						return ((int)objA > (int)objB);
+					}
+					else if (isDateTimeVal)
+					{
+						return ((DateTime)objA > (DateTime)objB);
+					}
+                    break;
+				case SubSonic.Comparison.GreaterOrEquals:
+					if (isIntegerVal)
+					{
+						return ((int)objA >= (int)objB);
+					}
+					else if (isDateTimeVal)
+					{
+						return ((DateTime)objA >= (DateTime)objB);
+					}
+					break;
+				case SubSonic.Comparison.LessThan:
+					if (isIntegerVal)
+					{
+						return ((int)objA < (int)objB);
+					}
+					else if (isDateTimeVal)
+					{
+						return ((DateTime)objA < (DateTime)objB);
+					}
+					break;
+				case SubSonic.Comparison.LessOrEquals:
+					if (isIntegerVal)
+					{
+						return ((int)objA <= (int)objB);
+					}
+					else if (isDateTimeVal)
+					{
+						return ((DateTime)objA <= (DateTime)objB);
+					}
+					break;
+            }
+			return false;
+		}
+
         /// <summary>
         /// Evaluates an array of strings to determine if at least one item is a match
         /// </summary>
@@ -1990,3 +2057,4 @@ namespace SubSonic.Utilities
         }
     }
 }
+
