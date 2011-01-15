@@ -431,7 +431,8 @@ namespace SubSonic
         public const string CREDIT_CARD_MASTER_CARD = @"^(?:(?:[5][1-5])(?:\d{14}))$";
         public const string CREDIT_CARD_STRIP_NON_NUMERIC = @"(\-|\s|\D)*";
         public const string CREDIT_CARD_VISA = @"^(?:(?:[4])(?:\d{12}|\d{15}))$";
-        public const string EMAIL = @"^([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$";
+        //this is the RFC 2822 standard from http://www.regular-expressions.info/email.html
+        public const string EMAIL = @"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$";
         public const string EMBEDDED_CLASS_NAME_MATCH = "(?<=^_).*?(?=_)";
         public const string EMBEDDED_CLASS_NAME_REPLACE = "^_.*?_";
         public const string EMBEDDED_CLASS_NAME_UNDERSCORE_MATCH = "(?<=^UNDERSCORE).*?(?=UNDERSCORE)";
@@ -439,7 +440,7 @@ namespace SubSonic
         public const string GUID = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
         public const string IP_ADDRESS = @"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
         public const string LOWER_CASE = @"^[a-z]+$";
-        public const string NUMERIC = "[^0-9]";
+        public const string NUMERIC = @"^[0-9]+$";
         public const string SOCIAL_SECURITY = @"^\d{3}[-]?\d{2}[-]?\d{4}$";
         public const string SQL_EQUAL = @"\=";
         public const string SQL_GREATER = @"\>";
