@@ -222,6 +222,20 @@ namespace SubSonic.Sugar
             return propertyName;
         }
 
+		public static string ToHtmlBulletedList(IList<string> list)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine("<ul>");
+			foreach (string s in list)
+			{
+				sb.AppendFormat("<li>{0}</li>", s);
+				sb.AppendLine();
+			}
+			sb.AppendLine("</ul>");
+			return sb.ToString();
+		}
+
+
         /// <summary>
         /// Converts a generic List collection to a single comma-delimitted string.
         /// </summary>
