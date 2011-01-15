@@ -363,6 +363,29 @@ namespace SubSonic.Sugar
         }
 
         /// <summary>
+        /// Strips all non-numeric values out of a string
+        /// </summary>
+        /// <param name="sIn">The string to strip</param>
+        /// <returns>Null if empty</returns>
+        public static string StripNonNumeric(string sIn)
+        {
+            return StripNonNumeric(sIn, null);
+        }
+
+        /// <summary>
+        /// Strips all non-numeric values out of a string
+        /// </summary>
+        /// <param name="sIn">The string to strip</param>
+        /// <param name="valueIfEmpty">A string that evaluates to null, empty string, or a valid number</param>
+        /// <returns>When null or empty, returns the specified default value, otherwise returns a string that can be safely parsed into a number.</returns>
+        public static string StripNonNumeric(string sIn, string valueIfNullOrEmpty)
+        {
+            if (!String.IsNullOrEmpty(valueIfNullOrEmpty) && !Sugar.Numbers.IsNumber(valueIfNullOrEmpty))
+                throw new ArgumentOutOfRangeException("valueIfNullOrEmpty", "This parameter must evaluate to either null, empty string, or a valid number.");
+            string sOut = System.Text.RegularExpressions.Regex.Replace(sIn, "\\D", "");
+            return (sOut == string.Empty ? valueIfNullOrEmpty : sOut);
+        }
+        /// <summary>
         /// Converts ASCII encoding to Unicode
         /// </summary>
         /// <param name="asciiCode">The ASCII code.</param>
