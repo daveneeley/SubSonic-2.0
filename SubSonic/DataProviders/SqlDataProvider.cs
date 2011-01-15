@@ -1626,7 +1626,11 @@ ORDER BY OrdinalPosition ASC";
                                     }
                                     else
                                     {
-                                        thisStatement.Append("'");
+                                        if (col.DataType == DbType.String || col.DataType == DbType.StringFixedLength)
+                                            thisStatement.Append("N'");
+                                        else
+                                            thisStatement.Append("'");
+
                                         thisStatement.Append(oData.ToString().Replace("'", "''"));
                                         thisStatement.Append("'");
                                     }
