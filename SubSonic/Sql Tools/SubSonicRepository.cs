@@ -65,9 +65,7 @@ namespace SubSonic
 
         public Insert Insert()
         {
-            Insert i = new Insert();
-            i.Provider = _provider;
-            return i;
+            return new Insert { Provider = _provider };
         }
 
         public Delete Delete()
