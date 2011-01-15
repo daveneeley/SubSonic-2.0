@@ -276,6 +276,16 @@ namespace SubSonic
         #region And
 
         /// <summary>
+        /// Ands the expression
+        /// </summary>
+        /// <param name="column">Strongly Typed column reference</param>
+        /// <returns></returns>
+        public Constraint AndExpression(TableSchema.TableColumn column)
+        {
+            return AndExpression(column.QualifiedName);
+        }
+
+        /// <summary>
         /// Ands the expression.
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
