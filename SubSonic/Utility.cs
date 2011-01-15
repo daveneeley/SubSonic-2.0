@@ -196,8 +196,7 @@ namespace SubSonic.Utilities
         /// </returns>
         public static bool IsSql2008(DataProvider provider)
         {
-			return provider.DatabaseVersion.IndexOf("2008 - 10.") > -1 ||
-				provider.DatabaseVersion.IndexOf("2008 (RTM) - 10.") > -1;
+            return (provider.DatabaseVersion.IndexOf("2008") > -1) && (provider.DatabaseVersion.IndexOf(" - 10.") > -1);
         }
 
         /// <summary>
