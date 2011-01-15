@@ -490,8 +490,18 @@ namespace SubSonic
         /// <returns></returns>
         public ListType Load()
         {
-            Query qry = new Query(new ItemType().GetSchema());
-            CheckLogicalDelete(qry);
+			return Load(true);
+        }
+
+		/// <summary>
+		/// Loads the collection using any specified conditional operators.
+		/// </summary>
+		/// <returns></returns>
+		public ListType Load(bool suppressLogicalDeletes)
+		{
+			Query qry = new Query(new ItemType().GetSchema());
+			if (suppressLogicalDeletes)
+				CheckLogicalDelete(qry);
 
             foreach(Where where in wheres)
                 qry.AddWhere(where);
