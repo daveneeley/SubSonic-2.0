@@ -669,7 +669,7 @@ namespace SubSonic
             inColumn = columnName;
 
             if(listItems == null || listItems.Length == 0)
-                listItems = new object[] {"NULL"};
+                listItems = new object[] { DBNull.Value };
 
             inList = listItems;
             return this;
@@ -688,7 +688,7 @@ namespace SubSonic
             if(listItems == null)
                 listItems = new ArrayList();
             if(listItems.Count == 0)
-                listItems.Add("NULL");
+                listItems.Add(DBNull.Value);
 
             inList = new object[listItems.Count];
 
@@ -732,7 +732,7 @@ namespace SubSonic
             notInColumn = columnName;
 
             if(listItems == null || listItems.Length == 0)
-                listItems = new object[] {"NULL"};
+                listItems = new object[] { DBNull.Value };
 
             notInList = listItems;
             return this;
@@ -751,7 +751,7 @@ namespace SubSonic
             if(listItems == null)
                 listItems = new ArrayList();
             if(listItems.Count == 0)
-                listItems.Add("NULL");
+                listItems.Add(DBNull.Value);
 
             notInList = new object[listItems.Count];
 
