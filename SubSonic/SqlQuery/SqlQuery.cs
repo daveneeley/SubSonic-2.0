@@ -1414,6 +1414,7 @@ namespace SubSonic
             {
                 TableSchema.Table table = FromTables[0];
                 StringBuilder strSelect = new StringBuilder(SqlFragment.SELECT);
+				strSelect.Append(this.TopSpec);
                 string strFrom = SqlFragment.FROM + table.QualifiedName;
                 StringBuilder strJoin = new StringBuilder();
                 for(int i = 0; i < table.Columns.Count; i++)
