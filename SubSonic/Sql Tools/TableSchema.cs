@@ -65,7 +65,7 @@ namespace SubSonic
             public DataProvider Provider
             {
                 get { return provider; }
-                protected set { provider = value; }
+                set { provider = value; }
             }
 
             /// <summary>
