@@ -134,6 +134,7 @@ namespace SubSonic
             {
                 if (query.IsDistinct)
                     sb.Append(query.DistinctSpec);
+
                 //set "TOP"
                 sb.Append(query.TopSpec);
 
@@ -324,14 +325,14 @@ namespace SubSonic
             else if(c.Comparison == Comparison.In || c.Comparison == Comparison.NotIn)
             {
                 sb.Append(columnName);
-                if(c.Comparison == Comparison.In)
+                if (c.Comparison == Comparison.In)
                     sb.Append(SqlFragment.IN);
                 else
                     sb.Append(SqlFragment.NOT_IN);
 
                 sb.Append("(");
 
-                if(c.InSelect != null)
+                if (c.InSelect != null)
                 {
                     //create a sql statement from the passed-in select
                     string sql = c.InSelect.BuildSqlStatement();
@@ -343,7 +344,7 @@ namespace SubSonic
                     IEnumerator en = c.InValues.GetEnumerator();
                     StringBuilder sbIn = new StringBuilder();
                     int i = 1;
-                    while(en.MoveNext())
+                    while (en.MoveNext())
                     {
                         sbIn.Append(String.Concat(c.ParameterName, "In", i, ","));
                         i++;
@@ -355,27 +356,27 @@ namespace SubSonic
 
                 sb.Append(")");
             }
-            else if(c.Comparison == Comparison.OpenParentheses)
+            else if (c.Comparison == Comparison.OpenParentheses)
             {
                 expressionIsOpen = true;
                 sb.Append("(");
             }
-            else if(c.Comparison == Comparison.CloseParentheses)
+            else if (c.Comparison == Comparison.CloseParentheses)
             {
                 expressionIsOpen = false;
                 sb.Append(")");
             }
             else
             {
-                if(columnName.StartsWith("("))
+                if (columnName.StartsWith("("))
                     expressionIsOpen = true;
-                if(c.ConstructionFragment != "##")
+                if (c.ConstructionFragment != "##")
                 {
                     sb.Append(columnName);
                     sb.Append(Constraint.GetComparisonOperator(c.Comparison));
-                    if(c.Comparison == Comparison.Is || c.Comparison == Comparison.IsNot)
+                    if (c.Comparison == Comparison.Is || c.Comparison == Comparison.IsNot)
                     {
-                        if(c.ParameterValue == null || c.ParameterValue == DBNull.Value)
+                        if (c.ParameterValue == null || c.ParameterValue == DBNull.Value)
                             sb.Append("NULL");
                     }
                     else
@@ -518,9 +519,14 @@ namespace SubSonic
             string column = GetSelectColumns()[0];
 
             const string countSelect = @"SELECT COUNT(*) FROM ({0}) AS CountOfRecords";
-            if (query.Aggregates.Count > 0 || query.IsDistinct)
+            if (query.Aggregates.Count > 0)
             {
                 getCountSelect = String.Format(countSelect, BuildSelectStatement());
+            }
+            else if (query.IsDistinct)
+            {
+                string select = String.Concat(GenerateCommandLine(), GenerateFromList(), GenerateJoins(), GenerateWhere());
+                getCountSelect = String.Format(countSelect, select);
             }
             else
             {
