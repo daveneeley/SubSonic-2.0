@@ -80,31 +80,42 @@ namespace SubSonic
             return new InlineQuery(_provider.Name);
         }
 
-        public bool IsOnline() {
-            bool result = false;
+        public bool IsOnline()
+        {
+            bool result;
 
-            using(DbConnection conn=this.Provider.CreateConnection()){
-                try {
-                    conn.Open();
+            using(DbConnection conn = Provider.CreateConnection())
+            {
+                try
+                {
+                    conn.Close();
                     result = true;
-                } catch {
+                }
+                catch
+                {
                     result = false;
                 }
             }
-            return true;
+            return result;
         }
-        public bool IsOnline(string connectionString) {
-            bool result = false;
 
-            using (DbConnection conn = this.Provider.CreateConnection(connectionString)) {
-                try {
-                    conn.Open();
+        public bool IsOnline(string connectionString)
+        {
+            bool result;
+
+            using(DbConnection conn = Provider.CreateConnection(connectionString))
+            {
+                try
+                {
+                    conn.Close();
                     result = true;
-                } catch {
+                }
+                catch
+                {
                     result = false;
                 }
             }
-            return true;
+            return result;
         }
 
         public T Get<T>(object primaryKeyValue) where T : RepositoryRecord<T>, new()
