@@ -81,10 +81,10 @@ namespace SubSonic.Sugar
         }
 
         /// <summary>
-        /// Cookies the specified param.
+        /// Gets a value from a cookie, or the default value for the specified type
         /// </summary>
         /// <typeparam name="t"></typeparam>
-        /// <param name="param">The param.</param>
+        /// <param name="param">The name of the parameter</param>
         /// <returns></returns>
         public static t Cookie<t>(string param)
         {
@@ -93,7 +93,27 @@ namespace SubSonic.Sugar
             if(cookie != null)
             {
                 string paramValue = cookie.Value;
-                result = (t)Utility.ChangeType(paramValue, typeof(t));
+                result = (t)Utility.ChangeType(HttpContext.Current.Server.HtmlEncode(paramValue), typeof(t));
+            }
+
+            return result;
+        }
+
+		/// <summary>
+		/// Gets a subvalue out of a cookie, or the default value for the specified type
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="cookieName">The name of the cookie.</param>
+		/// <param name="param">The name of the parameter.</param>
+		/// <returns></returns>
+		public static t Cookie<t>(string cookieName, string param)
+		{
+			t result = default(t);
+			HttpCookie cookie = HttpContext.Current.Request.Cookies[cookieName];
+			if (cookie != null && cookie.HasKeys)
+			{
+				string paramValue = cookie.Values[param];
+				result = (t)Utility.ChangeType(HttpContext.Current.Server.HtmlEncode(paramValue), typeof(t));
             }
 
             return result;
