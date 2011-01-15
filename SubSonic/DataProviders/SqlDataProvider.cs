@@ -74,7 +74,8 @@ INNER JOIN
         INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME
         WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
     ) 
-PT ON PT.TABLE_NAME = PK.TABLE_NAME";
+PT ON PT.TABLE_NAME = PK.TABLE_NAME
+ORDER BY PK.TABLE_NAME, FK.TABLE_NAME";
 
         private const string INDEX_SQL_ALL =
             @"SELECT
@@ -1705,7 +1706,8 @@ ORDER BY OrdinalPosition ASC";
                                            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
                                            JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON KCU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
                                            JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON RC.UNIQUE_CONSTRAINT_NAME=TC.CONSTRAINT_NAME
-                                           WHERE TC.TABLE_NAME = @tblName";
+                                           WHERE TC.TABLE_NAME = @tblName
+                                           ORDER BY KCU.TABLE_NAME, KCU.COLUMN_NAME";
 
         private const string GET_TABLE_SQL =
             @"SELECT KCU.TABLE_NAME as TableName
