@@ -694,11 +694,25 @@ namespace SubSonic.Utilities
         /// <returns></returns>
         public static string QualifyColumnName(string tableName, string columnName, DataProvider provider)
         {
-            string prefix = provider.DelimitDbName(tableName);
-            if(!String.IsNullOrEmpty(prefix))
-                return String.Concat(prefix, ".", provider.DelimitDbName(columnName));
+            return QualifyColumnName(tableName, columnName, provider, null);
+        }
 
-            return provider.DelimitDbName(columnName);
+        /// <summary>
+        /// Fully qualifies qualifies a column name using the [table].[column] format (SQL Server),
+        /// or other format appropriate to a given provider.
+        /// </summary>
+        /// <param name="tableName">Name of the table</param>
+        /// <param name="columnName">Name of the column</param>
+        /// <param name="provider">The provider that the format is being qualified for</param>
+        /// <param name="aliasName">The alias name the should be appended to the qualified name.</param>
+        /// <returns></returns>
+        public static string QualifyColumnName(string tableName, string columnName, DataProvider provider, string aliasName)
+        {
+            string prefix = provider.DelimitDbName(tableName);
+            if (!String.IsNullOrEmpty(prefix))
+                return String.Concat(prefix, ".", provider.DelimitDbName(columnName), (!String.IsNullOrEmpty(aliasName) ? String.Concat(" as ", provider.DelimitDbName(aliasName)) : ""));
+
+            return string.Concat(provider.DelimitDbName(columnName), (!String.IsNullOrEmpty(aliasName) ? String.Concat(" as ", provider.DelimitDbName(aliasName)) : ""));
         }
 
         /// <summary>
@@ -943,6 +957,8 @@ namespace SubSonic.Utilities
         }
 
         #endregion
+
+
 
 
         #region String Manipulations

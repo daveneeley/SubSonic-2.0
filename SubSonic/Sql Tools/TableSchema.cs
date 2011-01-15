@@ -1098,6 +1098,11 @@ namespace SubSonic
             /// <summary>
             /// Initializes a new instance of the <see cref="TableColumn"/> class.
             /// </summary>
+            private TableColumn() { }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TableColumn"/> class.
+            /// </summary>
             /// <param name="tableSchema">The table schema.</param>
             public TableColumn(Table tableSchema)
             {
@@ -1132,7 +1137,7 @@ namespace SubSonic
                 get
                 {
                     string prefix = String.IsNullOrEmpty(Table.SchemaName) ? String.Empty : String.Concat(Table.Provider.DelimitDbName(Table.SchemaName), ".");
-                    return String.Concat(prefix, Utility.QualifyColumnName(Table.Name, ColumnName, Table.Provider));
+                    return String.Concat(prefix, Utility.QualifyColumnName(Table.Name, ColumnName, Table.Provider, AliasName));
                 }
             }
 
@@ -1323,6 +1328,12 @@ namespace SubSonic
                 get { return displayName; }
             }
 
+            private string m_aliasName = string.Empty;
+            public string AliasName
+            {
+                get { return m_aliasName;}
+            }
+
             /// <summary>
             /// Gets the name of the argument.
             /// </summary>
@@ -1506,6 +1517,21 @@ namespace SubSonic
             {
                 return ColumnName;
             }
+
+            /// <summary>
+            /// Returns a deep copy of the table column with the alias property set
+            /// </summary>
+            /// <param name="aliasName">The alias name</param>
+            /// <returns></returns>
+            public TableColumn AliasAs(string aliasName)
+            {
+                TableColumn tc = this.Copy();
+                tc.m_aliasName = aliasName;
+                tc.table.Provider = this.table.Provider;
+
+                return tc;
+            }
+
         }
 
         #endregion

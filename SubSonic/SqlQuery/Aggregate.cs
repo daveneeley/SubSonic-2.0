@@ -535,5 +535,16 @@ namespace SubSonic
 
             return result;
         }
+
+        /// <summary>
+        /// Adds the alias to the aggregate in a fluent way
+        /// </summary>
+        /// <param name="alias">the new name to give the aggregate</param>
+        /// <returns></returns>
+        public Aggregate AliasAs(string alias)
+        {
+            _alias = alias;
+            return this;
+        }
     }
 }
