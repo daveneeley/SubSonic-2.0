@@ -1548,8 +1548,19 @@ namespace SubSonic
                     for(int i = 0; i < rdr.FieldCount; i++)
                     {
                         prop = cachedProps[i];
-                        if(prop != null && !DBNull.Value.Equals(rdr.GetValue(i)))
-                            prop.SetValue(item, rdr.GetValue(i), null);
+                        if (prop != null && !DBNull.Value.Equals(rdr.GetValue(i)))
+                        {
+                            //if the types are the same, set them. Catch exceptions and try a little harder on them
+                            try
+                            {
+                                prop.SetValue(item, rdr.GetValue(i), null);
+                            }
+                            catch (InvalidCastException)
+                            {
+                                //could be a nullable type problem, check that
+                                prop.SetValue(item, Utility.ChangeType(rdr.GetValue(i), prop.GetValue(item, null).GetType()), null);
+                            }
+                        }
                     }
                     result.Add(item);
                 }
