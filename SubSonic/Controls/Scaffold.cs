@@ -722,7 +722,7 @@ namespace SubSonic
                 pnlEditor.Visible = true;
                 pnlGrid.Visible = false;
                 btnSave.Visible = true;
-				btnCancel.Visible = ReturnOnSave;
+				btnCancel.Visible = ReturnOnSave || ScaffoldType == ScaffoldTypeEnum.Auto;
                 btnDelete.Visible = false;
                 lblTitle.Visible = !ShowScaffoldCaption;
             }
@@ -752,14 +752,21 @@ namespace SubSonic
         }
 
         /// <summary>
-        /// Handles the SelectedIndexChanged event of the ddlTables control.
+         /// Handles the SelectedIndexChanged event of the ddlTables control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void ddlTables_SelectedIndexChanged(object sender, EventArgs e)
         {
-            CreateChildControls();
-            //throw new Exception("The method or operation is not implemented.");
+            try
+            {
+                CreateChildControls();
+            }
+            catch (Exception ex)
+            {
+                if (!raiseFailureEvent(ex))
+                    throw;
+            }
         }
 
         /// <summary>
@@ -769,10 +776,34 @@ namespace SubSonic
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void ddlProviders_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ddlTables.Items.Clear();
-            CreateChildControls();
-            //throw new Exception("The method or operation is not implemented.");
+            try
+            {
+                ddlTables.Items.Clear();
+                CreateChildControls();
+            }
+            catch (Exception ex)
+            {
+                if (!raiseFailureEvent(ex))
+                    throw;
+            }
         }
+
+        private bool raiseFailureEvent(Exception ex)
+        {
+            if (EditorFailed != null)
+            {
+                ScaffoldEventArgs sea = new ScaffoldEventArgs(ex.Message, ex);
+                OnEditorFailed(sea);
+                btnAdd.Visible = false;
+                btnCancel.Visible = true;
+                btnDelete.Visible = false;
+                btnSave.Visible = false;
+                ShowMessage("<a href='javascript:history.back(); return false'>Go back</a>");
+                return true;
+            }
+            return false;
+        }
+            
 
         private void PopulateProviderList()
         {
@@ -1378,12 +1409,11 @@ namespace SubSonic
 
                 OnEditorSaved(new EventArgs());
 
-                if (ReturnOnSave)
+                if (ReturnOnSave || ScaffoldType == ScaffoldTypeEnum.Auto)
                     BuildWithModeChange(ScaffoldMode.List);
             }
             catch (Exception ex)
             {
-                EventArgs e = new EventArgs();
                 OnEditorFailed(new ScaffoldEventArgs("Editor failed to save.", ex));
             }
         }
@@ -1685,6 +1715,7 @@ namespace SubSonic
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void btnAdd_Click(object sender, EventArgs e)
         {
+            //this just sets up the control to do an add.
             BuildWithModeChange(ScaffoldMode.Add);
         }
 
