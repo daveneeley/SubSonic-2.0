@@ -688,6 +688,22 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Determines whether the value is between the values in the specified columns
+        /// </summary>
+        /// <param name="col1"></param>
+        /// <param name="col2"></param>
+        /// <returns></returns>
+        public SqlQuery IsBetweenAnd(TableSchema.TableColumn col1, TableSchema.TableColumn col2)
+        {
+            Comparison = Comparison.BetweenAndColumns;
+            StartValue = col1.QualifiedName;
+            EndValue = col2.QualifiedName;
+            DbType = query.GetConstraintDbType(TableName, ColumnName, col1);
+            query.Constraints.Add(this);
+            return query;
+        }
+
+        /// <summary>
         /// Determines whether [is equal to] [the specified val].
         /// </summary>
         /// <param name="val">The val.</param>

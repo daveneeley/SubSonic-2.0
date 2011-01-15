@@ -322,7 +322,15 @@ namespace SubSonic
                 sb.Append(SqlFragment.AND);
                 sb.Append(c.ParameterName + "_end");
             }
-            else if(c.Comparison == Comparison.In || c.Comparison == Comparison.NotIn)
+            else if (c.Comparison == Comparison.BetweenAndColumns)
+            {
+                sb.Append(columnName);
+                sb.Append(SqlFragment.BETWEEN);
+                sb.Append(c.StartValue);
+                sb.Append(SqlFragment.AND);
+                sb.Append(c.EndValue);
+            }
+            else if (c.Comparison == Comparison.In || c.Comparison == Comparison.NotIn)
             {
                 sb.Append(columnName);
                 if (c.Comparison == Comparison.In)

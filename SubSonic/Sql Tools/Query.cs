@@ -66,7 +66,8 @@ namespace SubSonic
         NotIn,
         OpenParentheses,
         CloseParentheses,
-        BetweenAnd
+        BetweenAnd,
+        BetweenAndColumns
     }
 
     #endregion
