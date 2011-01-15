@@ -27,6 +27,12 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using SubSonic.Sugar;
 using Calendar=System.Web.UI.WebControls.Calendar;
+//using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;     
+      
+
 
 namespace SubSonic.Utilities
 {
@@ -1959,5 +1965,28 @@ namespace SubSonic.Utilities
         }
 
         #endregion
+
+        /// <summary>
+        /// creates a new version of an object using serialization
+        /// </summary>
+        public static class ObjectClone
+        {
+            /// <summary>
+            /// creates a new version of an object using serialization
+            /// </summary>
+            /// <typeparam name="T">a serializable type</typeparam>
+            /// <param name="RealObject">The source object</param>
+            /// <returns>a non-shallow copy of the source object</returns>
+            public static T Clone<T>(T RealObject)
+            {
+                using (Stream objectStream = new MemoryStream())
+                {
+                    IFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(objectStream, RealObject);
+                    objectStream.Seek(0, SeekOrigin.Begin);
+                    return (T)formatter.Deserialize(objectStream);
+                }
+            }
+        }
     }
 }

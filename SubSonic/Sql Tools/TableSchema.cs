@@ -1532,6 +1532,35 @@ namespace SubSonic
                 return tc;
             }
 
+            /// <summary>
+            /// Returns a deep copy of this TableColumn object
+            /// </summary>
+            /// <returns></returns>
+            private TableColumn Copy()
+            {
+                return Utilities.Utility.ObjectClone.Clone<TableColumn>(this);
+                //TableColumn c = new TableColumn();
+                ////use the private member variables instead of the public properties
+                ////because all of the heavy lifting should already be done when this
+                ////method is used.
+
+                //c.columnName = this.columnName;
+                //c.maxLength = this.maxLength;
+                //c.dbType = this.dbType;
+                //c.isNullable = this.isNullable;
+                //c.defaultSetting = this.DefaultSetting;
+                //c.isPrimaryKey = this.IsPrimaryKey;
+                //c.isForeignKey = this.isForeignKey;
+                //c.isReadOnly = this.isReadOnly;
+                //c.numberPrecision = this.numberPrecision;
+                //c.numberScale = this.numberScale;
+                //c.parameterName = this.parameterName;
+                //c.propertyName = this.propertyName;
+                //c.schemaName = this.schemaName;
+                //c.argumentName = this.argumentName;
+                //c.autoIncrement = this.autoIncrement;
+                //return c;
+            }
         }
 
         #endregion
