@@ -1642,8 +1642,22 @@ namespace SubSonic
         /// <param name="ds">The DataSet containing the tables to map.</param>
         protected static void AddTableMappings(DataAdapter da, DataSet ds)
         {
+            AddTableMappings(da, ds, null);
+        }
+
+        /// <summary>
+        /// DataSet helper class used to add table mappings to a DataAdapter.
+        /// </summary>
+        /// <remarks>
+        /// TableMappings keep the table names during a Fill operation.
+        /// </remarks>
+        /// <param name="da">The DataAdapter to add the mappings to.</param>
+        /// <param name="ds">The DataSet containing the tables to map.</param>
+        protected static void AddTableMappings(DataAdapter da, DataSet ds, string[] tableNames)
+        {
             const string rootName = "Table";
-            string[] tableNames = GetTableNames(ds);
+            if (tableNames == null || tableNames.Length == 0)
+                tableNames = GetTableNames(ds);
 
             for(int i = 0; i < tableNames.Length; i++)
             {

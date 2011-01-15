@@ -428,7 +428,7 @@ ORDER BY OrdinalPosition ASC";
                                  };
             SqlDataAdapter da = new SqlDataAdapter(cmd);
 
-            AddTableMappings(da, ds);
+            AddTableMappings(da, ds, qry.ResultTableNames);
             using(AutomaticConnectionScope conn = new AutomaticConnectionScope(this))
             {
                 cmd.Connection = (SqlConnection)conn.Connection;

@@ -266,6 +266,12 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Gets or sets the list of table names that should be applied to the result set
+        /// Added by dneeley 06-25-2010
+        /// </summary>
+        public string[] ResultTableNames { get; set; }
+
+        /// <summary>
         /// Determines whether [has output params].
         /// </summary>
         /// <returns>
