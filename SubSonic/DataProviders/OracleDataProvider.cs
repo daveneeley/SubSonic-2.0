@@ -1081,7 +1081,8 @@ namespace SubSonic
                             AND c.constraint_name = e.constraint_name 
                             AND c.column_name = :columnName 
                             AND e.table_name = :tableName 
-                            AND c.owner not in ('SYS','SYSTEM')";
+                            AND c.owner not in ('SYS','SYSTEM')
+                          ORDER BY d.table_name";
 
         private const string GET_PRIMARY_KEY_SQL =
             @"SELECT e.table_name AS TableName, c.column_name AS ColumnName 
@@ -1089,7 +1090,8 @@ namespace SubSonic
                           WHERE d.constraint_name = e.r_constraint_name 
                             AND c.constraint_name = e.constraint_name 
                             AND d.table_name = :tableName
-                            AND c.owner not in ('SYS','SYSTEM')";
+                            AND c.owner not in ('SYS','SYSTEM')
+                          ORDER BY e.table_name, c.column_name ";
 
         private const string GET_TABLE_SQL =
             @"SELECT b.table_name 
@@ -1098,7 +1100,8 @@ namespace SubSonic
                             AND a.constraint_type IN ('R', 'P') 
                             AND b.column_name = :columnName 
                             AND a.constraint_type = 'P' 
-                            AND a.owner not in ('SYS','SYSTEM')";
+                            AND a.owner not in ('SYS','SYSTEM')
+                         ORDER BY b.table_name";
 
         private const string INDEX_SQL =
             @"SELECT b.table_name, b.column_name, 
@@ -1120,7 +1123,8 @@ namespace SubSonic
                             AND a.constraint_type = 'R' 
                             AND a.r_constraint_name = b.constraint_name 
                             AND b.table_name like '%' + :mapSuffix
-                            AND a.owner not in ('SYS','SYSTEM')";
+                            AND a.owner not in ('SYS','SYSTEM')
+                           ORDER BY b.table_name";
 
         private const string SP_PARAM_SQL =
             @"SELECT a.object_name, a.object_type, b.position, b.in_out, 
@@ -1142,12 +1146,14 @@ namespace SubSonic
             @"SELECT user, a.table_name, a.column_name, a.column_id, a.data_default, a.nullable, a.data_type, a.char_length, 
                         a.data_precision, a.data_scale, a.owner 
                      FROM all_tab_columns a 
-                     WHERE a.owner not in ('SYS','SYSTEM') and a.table_name = :tableName";
+                     WHERE a.owner not in ('SYS','SYSTEM') and a.table_name = :tableName
+                     ORDER BY a.column_id";
 
         private const string TABLE_SQL = 
             @"SELECT a.table_name as Name
                     FROM all_all_tables a 
-                    WHERE a.owner not in ('SYS','SYSTEM')";
+                    WHERE a.owner not in ('SYS','SYSTEM')
+                    ORDER BY a.table_name";
 
 
 
@@ -1160,7 +1166,8 @@ namespace SubSonic
         private const string VIEW_SQL = 
             @"SELECT a.view_name as Name 
                         FROM all_views a 
-                        WHERE a.owner not in ('SYS','SYSTEM')";
+                        WHERE a.owner not in ('SYS','SYSTEM')
+                        ORDER BY a.view_name";
 
         #endregion
     }

@@ -75,7 +75,7 @@ INNER JOIN
         WHERE i1.CONSTRAINT_TYPE = 'PRIMARY KEY'
     ) 
 PT ON PT.TABLE_NAME = PK.TABLE_NAME
-ORDER BY PK.TABLE_NAME, FK.TABLE_NAME";
+ORDER BY PK.TABLE_NAME, FK.TABLE_NAME, CU.COLUMN_NAME";
 
         private const string INDEX_SQL_ALL =
             @"SELECT
@@ -148,7 +148,8 @@ PT ON PT.TABLE_NAME = PK.TABLE_NAME";
     KCU.COLUMN_NAME AS FK_COLUMN
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
 JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON KCU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
-JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON RC.UNIQUE_CONSTRAINT_NAME=TC.CONSTRAINT_NAME";
+JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON RC.UNIQUE_CONSTRAINT_NAME=TC.CONSTRAINT_NAME
+ORDER BY TC.TABLE_NAME, KCU.TABLE_NAME, KCU.COLUMN_NAME";
 
         private const string SP_PARAM_SQL_ALL =
             @"SELECT SPECIFIC_SCHEMA AS SPSchema,SPECIFIC_NAME AS SPName, ORDINAL_POSITION AS OrdinalPosition, 
@@ -1692,14 +1693,16 @@ ORDER BY OrdinalPosition ASC";
                     FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
                     JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON KCU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
                     JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC  ON RC.UNIQUE_CONSTRAINT_NAME=TC.CONSTRAINT_NAME
-                    WHERE KCU.TABLE_NAME=@tblName";
+                    WHERE KCU.TABLE_NAME=@tblName
+                    ORDER BY TC.TABLE_NAME, KCU.COLUMN_NAME";
 
         private const string GET_FOREIGN_KEY_SQL =
             @"SELECT TC.TABLE_NAME AS TableName
                                            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
                                            JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON KCU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
                                            JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC  ON RC.UNIQUE_CONSTRAINT_NAME=TC.CONSTRAINT_NAME
-                                           WHERE KCU.COLUMN_NAME=@columnName AND KCU.TABLE_NAME = @tblName";
+                                           WHERE KCU.COLUMN_NAME=@columnName AND KCU.TABLE_NAME = @tblName
+                                           ORDER BY TC.TABLE_NAME";
 
         private const string GET_PRIMARY_KEY_SQL =
             @"SELECT KCU.TABLE_NAME AS TableName, KCU.COLUMN_NAME AS ColumnName
@@ -1714,7 +1717,8 @@ ORDER BY OrdinalPosition ASC";
                                             FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU
                                             JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC
                                             ON KCU.CONSTRAINT_NAME=TC.CONSTRAINT_NAME
-                                            WHERE KCU.COLUMN_NAME=@columnName AND TC.CONSTRAINT_TYPE='PRIMARY KEY'";
+                                            WHERE KCU.COLUMN_NAME=@columnName AND TC.CONSTRAINT_TYPE='PRIMARY KEY'
+                                            ORDER BY KCU.TABLE_NAME";
 
         //thanks Jon G!
 
@@ -1785,17 +1789,21 @@ ORDER BY OrdinalPosition ASC";
                         WHERE COLUMN_NAME=@columnName
                         AND CONSTRAINT_TYPE='PRIMARY KEY'
                         AND TC.TABLE_NAME NOT LIKE '%'+@mapSuffix
-                        AND KCU.ORDINAL_POSITION=1";
+                        AND KCU.ORDINAL_POSITION=1
+                        ORDER BY TC.TABLE_NAME";
 
         private const string TABLE_SQL =
             @"SELECT TABLE_CATALOG AS [Database], TABLE_SCHEMA AS Owner, TABLE_NAME AS Name, TABLE_TYPE 
                                         FROM INFORMATION_SCHEMA.TABLES
-                                        WHERE (TABLE_TYPE = 'BASE TABLE') AND (TABLE_NAME <> N'sysdiagrams') AND (TABLE_NAME <> N'dtproperties')";
+                                        WHERE (TABLE_TYPE = 'BASE TABLE') AND (TABLE_NAME <> N'sysdiagrams') AND (TABLE_NAME <> N'dtproperties')
+                                        ORDER BY TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE";
+
 
         private const string VIEW_SQL =
             @"SELECT TABLE_CATALOG AS [Database], TABLE_SCHEMA AS Owner, TABLE_NAME AS Name, TABLE_TYPE
                                         FROM INFORMATION_SCHEMA.TABLES
-                                        WHERE (TABLE_TYPE = 'VIEW') AND (TABLE_NAME <> N'sysdiagrams')";
+                                        WHERE (TABLE_TYPE = 'VIEW') AND (TABLE_NAME <> N'sysdiagrams')
+                                        ORDER BY TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE";
 
         #endregion
     }
