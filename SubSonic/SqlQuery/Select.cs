@@ -152,17 +152,5 @@ namespace SubSonic
             return this;
         }
 
-        /// <summary>
-        /// Distincts this instance.
-        /// </summary>
-        /// <returns></returns>
-        public Select Distinct()
-        {
-            DistinctSpec = SqlFragment.DISTINCT;
-            IsDistinct = true;
-            return this;
-        }
-
-
     }
 }
