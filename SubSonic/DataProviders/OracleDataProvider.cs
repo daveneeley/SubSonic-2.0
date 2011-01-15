@@ -386,7 +386,7 @@ namespace SubSonic
                 //get information about both the table and it's columns                
                 while(rdr.Read())
                 {
-                    tbl.SchemaName = rdr["USER"].ToString();
+                    tbl.SchemaName = rdr["OWNER"].ToString();
 
                     column = new TableSchema.TableColumn(tbl);
                     column.ColumnName = rdr[OracleSchemaVariable.COLUMN_NAME].ToString();
@@ -1074,65 +1074,93 @@ namespace SubSonic
 
         #region Schema Bits
 
-        private const string GET_FOREIGN_KEY_SQL = "SELECT d.table_name " +
-                                                   " FROM user_cons_columns c, user_constraints d, user_constraints e " +
-                                                   " WHERE d.constraint_name = e.r_constraint_name " +
-                                                   " AND c.constraint_name = e.constraint_name " +
-                                                   " AND c.column_name = :columnName " +
-                                                   " AND e.table_name = :tableName ";
+        private const string GET_FOREIGN_KEY_SQL =
+            @"SELECT d.table_name 
+                          FROM all_cons_columns c, all_constraints d, all_constraints e 
+                          WHERE d.constraint_name = e.r_constraint_name 
+                            AND c.constraint_name = e.constraint_name 
+                            AND c.column_name = :columnName 
+                            AND e.table_name = :tableName 
+                            AND c.owner not in ('SYS','SYSTEM')";
 
-        private const string GET_PRIMARY_KEY_SQL = "SELECT e.table_name AS TableName, c.column_name AS ColumnName " +
-                                                   "  FROM user_cons_columns c, user_cons_columns d, user_constraints e " +
-                                                   " WHERE d.constraint_name = e.r_constraint_name " +
-                                                   "   AND c.constraint_name = e.constraint_name " +
-                                                   "   AND d.table_name = :tableName ";
+        private const string GET_PRIMARY_KEY_SQL =
+            @"SELECT e.table_name AS TableName, c.column_name AS ColumnName 
+                          FROM all_cons_columns c, all_cons_columns d, all_constraints e 
+                          WHERE d.constraint_name = e.r_constraint_name 
+                            AND c.constraint_name = e.constraint_name 
+                            AND d.table_name = :tableName
+                            AND c.owner not in ('SYS','SYSTEM')";
 
-        private const string GET_TABLE_SQL = "SELECT b.table_name " +
-                                             "  FROM user_constraints a, user_cons_columns b " +
-                                             " WHERE a.constraint_name = b.constraint_name " +
-                                             "   AND a.constraint_type IN ('R', 'P') " +
-                                             "   AND b.column_name = :columnName " +
-                                             "   AND a.constraint_type = 'P' ";
+        private const string GET_TABLE_SQL =
+            @"SELECT b.table_name 
+                         FROM all_constraints a, all_cons_columns b 
+                         WHERE a.constraint_name = b.constraint_name 
+                            AND a.constraint_type IN ('R', 'P') 
+                            AND b.column_name = :columnName 
+                            AND a.constraint_type = 'P' 
+                            AND a.owner not in ('SYS','SYSTEM')";
 
-        private const string INDEX_SQL = "SELECT b.table_name, b.column_name, " +
-                                         "       DECODE (a.constraint_type, " +
-                                         "               'R', 'FOREIGN KEY', " +
-                                         "               'P', 'PRIMARY KEY', " +
-                                         "               'UNKNOWN' " +
-                                         "              ) constraint_type " +
-                                         "  FROM user_constraints a, user_cons_columns b " +
-                                         " WHERE a.constraint_name = b.constraint_name " +
-                                         "   AND a.constraint_type IN ('R', 'P') " +
-                                         "   AND b.table_name = :tableName ";
+        private const string INDEX_SQL =
+            @"SELECT b.table_name, b.column_name, 
+                              DECODE (a.constraint_type, 
+                                      'R', 'FOREIGN KEY', 
+                                      'P', 'PRIMARY KEY', 
+                                      'UNKNOWN' 
+                                     ) constraint_type 
+                         FROM all_constraints a, all_cons_columns b 
+                        WHERE a.constraint_name = b.constraint_name 
+                          AND a.constraint_type IN ('R', 'P') 
+                          AND b.table_name = :tableName 
+                          AND a.owner not in ('SYS','SYSTEM')";
 
-        private const string MANY_TO_MANY_LIST = "SELECT b.table_name FROM user_constraints a, user_cons_columns b " +
-                                                 "WHERE a.table_name = :tableName " +
-                                                 "AND a.constraint_type = 'R' " +
-                                                 "AND a.r_constraint_name = b.constraint_name " +
-                                                 "AND b.table_name like '%' + :mapSuffix";
+        private const string MANY_TO_MANY_LIST =
+            @"SELECT b.table_name 
+                           FROM all_constraints a, all_cons_columns b 
+                           WHERE a.table_name = :tableName 
+                            AND a.constraint_type = 'R' 
+                            AND a.r_constraint_name = b.constraint_name 
+                            AND b.table_name like '%' + :mapSuffix
+                            AND a.owner not in ('SYS','SYSTEM')";
 
         private const string SP_PARAM_SQL =
             @"SELECT a.object_name, a.object_type, b.position, b.in_out, 
                                     b.argument_name, b.data_type, b.char_length, b.data_precision, b.data_scale 
-                                    FROM user_objects a, user_arguments b 
-                                    WHERE a.object_type IN ('PROCEDURE', 'PACKAGE') 
-                                    AND a.object_id = b.object_id 
-                                    AND a.object_name = :objectName";
+                            FROM all_objects a, all_arguments b 
+                            WHERE a.object_type IN ('PROCEDURE', 'PACKAGE') 
+                            AND a.object_id = b.object_id 
+                            AND a.owner not in ('SYS','SYSTEM')
+                            AND a.object_name = :objectName";
 
         private const string SP_SQL =
             @"SELECT a.object_name, a.object_type, a.created, a.last_ddl_time 
-                                FROM user_objects a 
+                                FROM all_objects a 
                                 WHERE a.object_type IN ('PROCEDURE', 'PACKAGE') 
+                                and a.owner not in ('SYS','SYSTEM')
                                 ORDER BY a.object_name";
 
-        private const string TABLE_COLUMN_SQL = "SELECT user, a.table_name, a.column_name, a.column_id, a.data_default, " +
-                                                "       a.nullable, a.data_type, a.char_length, a.data_precision, a.data_scale " +
-                                                "  FROM user_tab_columns a " +
-                                                " WHERE a.table_name = :tableName";
+        private const string TABLE_COLUMN_SQL =
+            @"SELECT user, a.table_name, a.column_name, a.column_id, a.data_default, a.nullable, a.data_type, a.char_length, 
+                        a.data_precision, a.data_scale, a.owner 
+                     FROM all_tab_columns a 
+                     WHERE a.owner not in ('SYS','SYSTEM') and a.table_name = :tableName";
 
-        private const string TABLE_SQL = "SELECT a.table_name AS Name FROM user_tables a";
+        private const string TABLE_SQL = 
+            @"SELECT a.table_name as Name
+                    FROM all_all_tables a 
+                    WHERE a.owner not in ('SYS','SYSTEM')";
 
-        private const string VIEW_SQL = "SELECT a.view_name AS Name FROM user_views a";
+
+
+		private const string UDF_SQL =
+			@"SELECT a.object_name, a.object_type, a.created, a.last_ddl_time 
+                                FROM all_objects a 
+                                WHERE a.object_type IN ('FUNCTION') and a.owner <> 'SYS'
+                                ORDER BY a.object_name";
+
+        private const string VIEW_SQL = 
+            @"SELECT a.view_name as Name 
+                        FROM all_views a 
+                        WHERE a.owner not in ('SYS','SYSTEM')";
 
         #endregion
     }
