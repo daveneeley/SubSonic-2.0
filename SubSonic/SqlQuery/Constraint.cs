@@ -495,7 +495,7 @@ namespace SubSonic
             if(counter == 0)
             {
                 vals = new ArrayList();
-                ((ArrayList)vals).Add("NULL");
+                ((ArrayList)vals).Add(DBNull.Value);
             }
 
             InValues = vals;
@@ -533,7 +533,7 @@ namespace SubSonic
             {
                 ArrayList nullArray = new ArrayList
                                           {
-                                              "NULL"
+                                              DBNull.Value
                                           };
                 InValues = nullArray;
                 Comparison = Comparison.In;
@@ -576,7 +576,7 @@ namespace SubSonic
             if(counter == 0)
             {
                 vals = new ArrayList();
-                ((ArrayList)vals).Add("NULL");
+                ((ArrayList)vals).Add(DBNull.Value);
             }
 
             InValues = vals;
@@ -610,7 +610,7 @@ namespace SubSonic
             {
                 ArrayList nullArray = new ArrayList
                                           {
-                                              "NULL"
+                                              DBNull.Value
                                           };
                 InValues = nullArray;
                 Comparison = Comparison.NotIn;
