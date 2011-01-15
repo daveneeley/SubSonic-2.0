@@ -125,11 +125,11 @@ namespace SubSonic
             string pkColumn = tbl.PrimaryKey.ColumnName;
             using(IDataReader rdr = SelectAllColumnsFrom<T>().Where(pkColumn).IsEqualTo(primaryKeyValue).ExecuteReader())
             {
-                if (rdr.Read()) {
+                if(rdr.Read())
                     item.Load(rdr);
-                } else {
+                else
                     item = null;
-                }
+         
                 rdr.Close();
             }
 
@@ -139,13 +139,13 @@ namespace SubSonic
         public T Get<T>(string columnName, object columnValue) where T : RepositoryRecord<T>, new()
         {
             T item = new T();
-            using (IDataReader rdr = SelectAllColumnsFrom<T>().Where(columnName).IsEqualTo(columnValue).ExecuteReader())
+            using(IDataReader rdr = SelectAllColumnsFrom<T>().Where(columnName).IsEqualTo(columnValue).ExecuteReader())
             {
-                if (rdr.Read()) {
+                if(rdr.Read())
                     item.Load(rdr);
-                } else {
+                else
                     item = null;
-                }
+
                 rdr.Close();
             }
 
@@ -178,7 +178,8 @@ namespace SubSonic
             Delete<T>(pkColumn, pkValue);
         }
 
-		public void DeleteByKey<T>(object itemId) where T : RepositoryRecord<T>, new() {
+		public void DeleteByKey<T>(object itemId) where T : RepositoryRecord<T>, new() 
+        {
 			T item = new T();
 			TableSchema.Table tbl = item.GetSchema();
 			string pkColumn = tbl.PrimaryKey.ColumnName;
@@ -200,7 +201,8 @@ namespace SubSonic
             new Destroy().From(tbl).Where(columnName).IsEqualTo(value).Execute();
         }
 
-		public void DestroyByKey<T>(object itemId) where T : RepositoryRecord<T>, new() {
+		public void DestroyByKey<T>(object itemId) where T : RepositoryRecord<T>, new() 
+        {
 			T item = new T();
 			TableSchema.Table tbl = item.GetSchema();
 			string pkColumn = tbl.PrimaryKey.ColumnName;
