@@ -258,33 +258,33 @@ namespace SubSonic.Sugar
                 result = Strings.Pluralize(years, SpecialString.YEAR);
                 if(months != 0)
                     result += ", " + Strings.Pluralize(months, SpecialString.MONTH);
-                result += " ago";
             }
             else if(months > 0)
             {
                 result = Strings.Pluralize(months, SpecialString.MONTH);
                 if(days != 0)
                     result += ", " + Strings.Pluralize(days, SpecialString.DAY);
-                result += " ago";
             }
             else if(days > 0)
             {
                 result = Strings.Pluralize(days, SpecialString.DAY);
                 if(hours != 0)
                     result += ", " + Strings.Pluralize(hours, SpecialString.HOUR);
-                result += " ago";
             }
             else if(hours > 0)
             {
                 result = Strings.Pluralize(hours, SpecialString.HOUR);
                 if(minutes != 0)
                     result += ", " + Strings.Pluralize(minutes, SpecialString.MINUTE);
-                result += " ago";
             }
             else if(minutes > 0)
-                result = Strings.Pluralize(minutes, SpecialString.MINUTE) + " ago";
+                result = Strings.Pluralize(minutes, SpecialString.MINUTE);
             else
-                result = Strings.Pluralize(seconds, SpecialString.SECOND) + " ago";
+                result = Strings.Pluralize(seconds, SpecialString.SECOND);
+
+            if (endTime.ToUniversalTime() < DateTime.Now.ToUniversalTime())
+                result += " ago";
+            
             return result;
         }
 
