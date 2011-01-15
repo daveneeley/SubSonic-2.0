@@ -124,25 +124,42 @@ namespace SubSonic.WebUtility
         /// </summary>
         public virtual void RenderOutput()
         {
-            if(_url.ReturnType == RESTReturnType.xml)
-            {
-                _context.Response.ContentType = "text/xml";
-                _outputWriter.Write(_output);
-            }
-            else if(_url.ReturnType == RESTReturnType.json)
-            {
-                _context.Response.ContentType = "text/json";
+            RESTfullContent c = ConvertOutputToEndFormat();
+            _context.Response.ContentType = c.ContentType;
+            _outputWriter.Write(c.Content);
+        }
 
-                XmlDocument xdoc = new XmlDocument();
-                xdoc.LoadXml(_output);
+        public RESTfullContent ConvertOutputToEndFormat()
+        {
+            return ConvertOutputToEndFormat(_output, _url);
+        }
 
-                //convert XML to a JSON string
-                string json = XmlToJSONParser.XmlToJSON(xdoc);
-                //clean up and prep for delivery
-                json = json.Replace(@"\", @"\\");
-                //final clean up and make it safe json for client side
-                _outputWriter.Write(XmlToJSONParser.SafeJSON(json));
+        public RESTfullContent ConvertOutputToEndFormat(string result, RESTfullUrl url)
+        {
+            RESTfullContent r;
+            switch (url.ReturnType)
+            {
+                case RESTReturnType.json:
+                    XmlDocument xdoc = new XmlDocument();
+                    xdoc.LoadXml(result);
+
+                    //convert XML to a JSON string
+                    string json = XmlToJSONParser.XmlToJSON(xdoc);
+                    //clean up and prep for delivery
+                    json = json.Replace(@"\", @"\\");
+                    //final clean up and make it safe json for client side
+                    //removed the extra call to SafeJSON
+                    //r = new RESTfullContent(XmlToJSONParser.SafeJSON(json), "text/json");
+                    //see http://forums.subsonicproject.com/t/3391.aspx for details
+                    r = new RESTfullContent(json, "text/json");
+                    break;
+                //data should already be in xml format
+                case RESTReturnType.xml:
+                default:
+                    r = new RESTfullContent(result, "text/xml");
+                    break;
             }
+            return r;
         }
 
         /// <summary>
@@ -150,7 +167,7 @@ namespace SubSonic.WebUtility
         /// </summary>
         /// <param name="ds">The ds.</param>
         /// <returns></returns>
-        private string FormatOutput(DataSet ds)
+        public string FormatOutput(DataSet ds)
         {
             string result = String.Empty;
 
@@ -170,8 +187,15 @@ namespace SubSonic.WebUtility
                 //find and replace if no result returned we still want the root element to have the name of the table
                 result = result.Replace("<NewDataSet />", String.Concat("<", tableName, "/>"));
 
-                //next, replace the <table> tag with the name of the table/sp passed in
-                result = result.Replace("<Table>", String.Concat("<", itemName, ">")).Replace("</Table>", String.Concat("</", itemName, ">"));
+                if (ds.Tables.Count == 0 || result.Equals("<" + tableName + "/>"))
+                {
+                    result = string.Format("<{0}><{1}/></{0}>", tableName, itemName);
+                }
+                else
+                {
+                    //next, replace the <table> tag with the name of the table/sp passed in
+                    result = result.Replace("<Table>", String.Concat("<", itemName, ">")).Replace("</Table>", String.Concat("</", itemName, ">"));
+                }
             }
             else if(_url.ReturnType == RESTReturnType.rss)
             {

@@ -259,6 +259,7 @@
     <Compile Include="Migrations\MigrationFiles\001_MigrationTest.cs" />
     <Compile Include="Migrations\MigrationFiles\002_MigrationTest.cs" />
     <Compile Include="Migrations\MigrationTests.cs" />
+    <Compile Include="RESTHandlerTests.cs" />
     <Compile Include="SqlGenerators\MySqlGeneratorTests.cs" />
     <Compile Include="SqlGenerators\SqlServerGeneratorTests.cs" />
     <Compile Include="SqlQuery\AggregateTests.cs" />

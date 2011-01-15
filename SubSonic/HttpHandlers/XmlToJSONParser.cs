@@ -48,7 +48,7 @@ namespace SubSonic.Parser
         private static void XmlToJSONnode(StringBuilder sbJSON, XmlNode node, bool showNodeName)
         {
             if(showNodeName)
-                sbJSON.Append(node.Name + ": ");
+                sbJSON.Append(SafeJSON(node.Name) + ": ");
             sbJSON.Append("{");
             // Build a sorted list of key-value pairs
             //  where   key is case-sensitive nodeName
@@ -80,7 +80,7 @@ namespace SubSonic.Parser
                     OutputNode(childname, alChild[0], sbJSON, true);
                 else
                 {
-                    sbJSON.Append(childname + ": [ ");
+                    sbJSON.Append(SafeJSON(childname) + ": [ ");
                     foreach(object Child in alChild)
                         OutputNode(childname, Child, sbJSON, false);
                     sbJSON.Remove(sbJSON.Length - 2, 2);

@@ -96,7 +96,8 @@ namespace SubSonic.WebUtility
         public RESTfullUrl(string url)
         {
             _rawUrl = url;
-            ParseUrl();
+            
+            ParseUrl(url);
         }
 
         /// <summary>
@@ -107,11 +108,7 @@ namespace SubSonic.WebUtility
         {
             _rawUrl = context.Request.Url.AbsoluteUri;
 
-            //set the return type based on context requested filepath (xml or json for now)
-            string format = Path.GetExtension(context.Request.CurrentExecutionFilePath).Replace(".", String.Empty);
-            ReturnType = DecideReturnType(format);
-
-            ParseUrl();
+            ParseUrl(context.Request.CurrentExecutionFilePath);
         }
 
         /// <summary>
@@ -229,11 +226,14 @@ namespace SubSonic.WebUtility
         /// http://domain/service_directory/spname/exec.[format]?[params]
         /// Parses the URL.
         /// </summary>
-        private void ParseUrl()
+        private void ParseUrl(string filePath)
         {
             //work backwards up the URL
             //first thing, check for a query string and strip it
             string workingUrl = _rawUrl;
+
+            string format = Path.GetExtension(filePath).Replace(".", String.Empty);
+            ReturnType = DecideReturnType(format);
 
             if(workingUrl.Contains("?"))
             {
@@ -294,4 +294,16 @@ namespace SubSonic.WebUtility
             }
         }
     }
+
+    public class RESTfullContent
+    {
+        public RESTfullContent(string content, string contentType)
+        {
+            Content = content;
+            ContentType = contentType;
+        }
+        public string Content { get; set; }
+        public string ContentType { get; set; }
+    }
+
 }
