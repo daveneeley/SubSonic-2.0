@@ -70,7 +70,7 @@ namespace SubSonic.Sugar
         /// </returns>
         public static bool IsNumeric(string evalString)
         {
-            return !Regex.IsMatch(evalString, RegexPattern.NUMERIC);
+            return Regex.IsMatch(evalString, RegexPattern.NUMERIC);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace SubSonic.Sugar
         /// </returns>
         public static bool IsEmail(string emailAddressString)
         {
-            return Regex.IsMatch(emailAddressString, RegexPattern.EMAIL);
+            return Regex.IsMatch(emailAddressString, RegexPattern.EMAIL, RegexOptions.IgnoreCase);
         }
 
         /// <summary>
