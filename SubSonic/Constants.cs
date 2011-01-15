@@ -122,6 +122,7 @@ namespace SubSonic
     {
         public const string PROVIDERS = "providers";
         public const string SUB_SONIC_SERVICE = "SubSonicService";
+        public const string REST_HANDLERS = "RESTHandlers";
     }
 
     /// <summary>
@@ -133,6 +134,7 @@ namespace SubSonic
         public const string APPEND_WITH = "appendWith";
         public const string CONNECTION_STRING_NAME = "connectionStringName";
         public const string DEFAULT_PROVIDER = "defaultProvider";
+        public const string DEFAULT_REST_HANDLER = "defaultRESTHandler";
         public const string ENABLE_TRACE = "enableTrace";
         public const string EXCLUDE_PROCEDURE_LIST = "excludeProcedureList";
         public const string EXCLUDE_TABLE_LIST = "excludeTableList";

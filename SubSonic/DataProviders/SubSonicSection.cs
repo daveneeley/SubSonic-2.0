@@ -13,6 +13,7 @@
 */
 
 using System.Configuration;
+using System;
 
 namespace SubSonic
 {
@@ -32,6 +33,16 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Gets the REST handlers.
+        /// </summary>
+        /// <value>The REST handlers.</value>
+        [ConfigurationProperty(ConfigurationSectionName.REST_HANDLERS)]
+        public ProviderSettingsCollection RESTHandlers
+        {
+            get { return (ProviderSettingsCollection)base[ConfigurationSectionName.REST_HANDLERS]; }
+        }
+
+        /// <summary>
         /// Gets or sets the default provider.
         /// </summary>
         /// <value>The default provider.</value>
@@ -40,6 +51,17 @@ namespace SubSonic
         {
             get { return (string)base[ConfigurationPropertyName.DEFAULT_PROVIDER]; }
             set { base[ConfigurationPropertyName.DEFAULT_PROVIDER] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets the default provider.
+        /// </summary>
+        /// <value>The default provider.</value>
+        [ConfigurationProperty(ConfigurationPropertyName.DEFAULT_REST_HANDLER, DefaultValue = "json")]
+        public string DefaultRESTHandler
+        {
+            get { return (string)base[ConfigurationPropertyName.DEFAULT_REST_HANDLER]; }
+            set { base[ConfigurationPropertyName.DEFAULT_REST_HANDLER] = value; }
         }
 
         /// <summary>

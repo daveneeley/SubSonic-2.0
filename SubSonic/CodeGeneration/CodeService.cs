@@ -317,6 +317,16 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Returns the itemString as string array, split by specified rules
+        /// </summary>
+        /// <param name="itemString">the string to split</param>
+        /// <returns></returns>
+        public static string[] GetItemListArray(string itemString)
+        {
+            return itemString.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        /// <summary>
         /// Builds the ODS template.
         /// </summary>
         /// <param name="tableName">Name of the table.</param>

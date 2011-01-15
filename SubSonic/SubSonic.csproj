@@ -140,6 +140,8 @@
     <Compile Include="ActiveRecord\RepositoryList.cs" />
     <Compile Include="ActiveRecord\RepositoryRecord.cs" />
     <Compile Include="ActiveRecord\StoredProcedure.cs" />
+    <Compile Include="HttpHandlers\RestProvider.cs" />
+    <Compile Include="HttpHandlers\RestService.cs" />
     <Compile Include="CodeGeneration\BuildProvider.cs" />
     <Compile Include="CodeGeneration\CodeService.cs" />
     <Compile Include="CodeGeneration\CompileEngine.cs" />

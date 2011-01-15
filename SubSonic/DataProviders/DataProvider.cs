@@ -220,7 +220,7 @@ namespace SubSonic
                 string[] result = new string[0];
 
                 if(!String.IsNullOrEmpty(additionalNamespaces))
-                    result = additionalNamespaces.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    result = CodeService.GetItemListArray(additionalNamespaces);
 
                 return result;
             }
@@ -257,7 +257,7 @@ namespace SubSonic
             {
                 string[] result = new string[0];
                 if(!String.IsNullOrEmpty(excludeProcedureList))
-                    result = excludeProcedureList.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    result = CodeService.GetItemListArray(excludeProcedureList);
 
                 return result;
             }
@@ -273,7 +273,7 @@ namespace SubSonic
             {
                 string[] result = new string[0];
                 if(!String.IsNullOrEmpty(excludeTableList))
-                    result = excludeTableList.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    result = CodeService.GetItemListArray(excludeTableList);
 
                 return result;
             }
@@ -380,8 +380,8 @@ namespace SubSonic
             get
             {
                 string[] result = new string[0];
-                if(!String.IsNullOrEmpty(includeProcedureList))
-                    result = includeProcedureList.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                if (!String.IsNullOrEmpty(includeProcedureList))
+                    result = CodeService.GetItemListArray(includeProcedureList);
 
                 return result;
             }
@@ -397,7 +397,7 @@ namespace SubSonic
             {
                 string[] result = new string[0];
                 if(!String.IsNullOrEmpty(includeTableList))
-                    result = includeTableList.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    result = CodeService.GetItemListArray(includeTableList);
 
                 return result;
             }

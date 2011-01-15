@@ -20,6 +20,7 @@ using System.Web;
 using System.Xml;
 using SubSonic.Parser;
 using SubSonic.Sugar;
+using System.Configuration;
 
 namespace SubSonic.WebUtility
 {
@@ -33,41 +34,8 @@ namespace SubSonic.WebUtility
         private HttpContext _context;
         private string _output;
         private TextWriter _outputWriter;
-        private string _spList = String.Empty;
-        private string _tableList = String.Empty;
         private RESTfullUrl _url;
 
-        private string _viewList = String.Empty;
-
-        /// <summary>
-        /// Gets or sets the allowed table list.
-        /// </summary>
-        /// <value>The allowed table list.</value>
-        public string AllowedTableList
-        {
-            get { return _tableList; }
-            set { _tableList = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the allowed view list.
-        /// </summary>
-        /// <value>The allowed view list.</value>
-        public string AllowedViewList
-        {
-            get { return _viewList; }
-            set { _viewList = value; }
-        }
-
-        /// <summary>
-        /// Gets or sets the allowed sp list.
-        /// </summary>
-        /// <value>The allowed sp list.</value>
-        public string AllowedSpList
-        {
-            get { return _spList; }
-            set { _spList = value; }
-        }
 
         /// <summary>
         /// Gets or sets the context.
@@ -126,7 +94,12 @@ namespace SubSonic.WebUtility
             //parse the URL
             _url = new RESTfullUrl(context);
 
-            DataSet ds = GenerateReturnSet();
+            DataSet ds;
+            RestProvider provider = RestService.GetInstance(Enum.GetName(typeof(RESTReturnType),_url.ReturnType));
+            if (!CodeService.ShouldGenerate(_url.TableName, provider.AllowedTables, new string[] { }, DataService.Provider) && !CodeService.ShouldGenerate(_url.SpName, provider.AllowedTables, new string[] { }, DataService.Provider))
+                ds = new DataSet();
+            else
+                ds = GenerateReturnSet();
 
             _output = FormatOutput(ds);
 
