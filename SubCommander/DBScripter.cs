@@ -58,7 +58,7 @@ namespace SubSonic.SubCommander
             trans.CopyAllUserDefinedFunctions = true;
             trans.CopyAllStoredProcedures = true;
             trans.CopyAllViews = true;
-            trans.CopyData = true;
+            trans.CopyData = false;
             trans.CopySchema = true;
             trans.DropDestinationObjectsFirst = true;
             trans.UseDestinationTransaction = true;
