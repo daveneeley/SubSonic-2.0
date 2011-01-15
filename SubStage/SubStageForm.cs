@@ -210,12 +210,12 @@ namespace SubSonic.SubStage
         private void EnableDisableTablesViews()
         {
             MasterStore.ProvidersRow provider = SelectedNode.Provider;
-            List<string> genGroups = new List<string>(provider.ExcludeTableList.Split(new string[] {","}, StringSplitOptions.RemoveEmptyEntries));
+            List<string> genGroups = new List<string>(provider.ExcludeTableList.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries));
             if(SelectedNode.NodeType == StageNodeType.Table || SelectedNode.NodeType == StageNodeType.View)
                 genGroups.Add(string.Format("^{0}$", SelectedNode.DatabaseName));
             else if(SelectedNode.NodeType == StageNodeType.TableExcluded || SelectedNode.NodeType == StageNodeType.ViewExcluded)
             {
-                foreach(string s in provider.ExcludeTableList.Split(new string[] {","}, StringSplitOptions.RemoveEmptyEntries))
+                foreach(string s in provider.ExcludeTableList.Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries))
                 {
                     if(Utility.IsRegexMatch(SelectedNode.DatabaseName, s.Trim()))
                     {
@@ -394,7 +394,7 @@ namespace SubSonic.SubStage
                                 ShowStatus("Invalid Configuration File... Import Aborted.");
 
                             newProvider.ConnectionStringId = activeConnectionId;
-                            string providerType = section.Providers[0].Type.Split(new char[] {'.', ','})[1].Trim();
+                            string providerType = section.Providers[0].Type.Split(new[] {'.', ','})[1].Trim();
 
                             bool foundProvider = false;
                             foreach(MasterStore.ProviderTypesRow providerTypeRow in MM.ProviderTypes)
@@ -587,10 +587,7 @@ namespace SubSonic.SubStage
 
             string currentCodeGenerationLanguage = config.CodeGenerationLanguage;
 
-            if (miGenerateVB.Checked)
-                config.CodeGenerationLanguage = "VB";
-            else
-                config.CodeGenerationLanguage = "C#";
+            config.CodeGenerationLanguage = miGenerateVB.Checked ? "VB" : "C#";
 
             if (!Utility.IsMatch(config.CodeGenerationLanguage, currentCodeGenerationLanguage))
                 MM.Save();
@@ -671,12 +668,14 @@ namespace SubSonic.SubStage
             foreach(string drive in drives)
             {
                 DriveInfo driveInfo = new DriveInfo(drive);
-                if(driveInfo.DriveType != DriveType.CDRom && driveInfo.IsReady)
+                if(driveInfo.DriveType != DriveType.CDRom && driveInfo.DriveType != DriveType.Network && driveInfo.IsReady)
                 {
-                    TreeNode node = new TreeNode(drive);
-                    node.Tag = drive;
-                    node.ImageKey = DRIVE_IMAGE;
-                    node.SelectedImageKey = DRIVE_IMAGE;
+                    TreeNode node = new TreeNode(drive)
+                                        {
+                                            Tag = drive,
+                                            ImageKey = DRIVE_IMAGE,
+                                            SelectedImageKey = DRIVE_IMAGE
+                                        };
                     treeFileSystem.Nodes.Add(node);
                     GetSubNodes(node, pathArray);
                 }
@@ -702,10 +701,12 @@ namespace SubSonic.SubStage
                 DirectoryInfo di = new DirectoryInfo(subDir);
                 if((di.Attributes & ignoreAttributes) == 0)
                 {
-                    TreeNode subNode = new TreeNode(di.Name);
-                    subNode.Tag = di.FullName;
-                    subNode.ImageKey = FOLDER_IMAGE;
-                    subNode.SelectedImageKey = FOLDER_IMAGE;
+                    TreeNode subNode = new TreeNode(di.Name)
+                                           {
+                                               Tag = di.FullName,
+                                               ImageKey = FOLDER_IMAGE,
+                                               SelectedImageKey = FOLDER_IMAGE
+                                           };
                     node.Nodes.Add(subNode);
 
                     if(pathArray != null && subNode.Level < pathArray.Length)
@@ -732,7 +733,7 @@ namespace SubSonic.SubStage
         private static string[] ParseDirectoryPath(string path)
         {
             path = path.Replace("/", "\\");
-            string[] parts = path.Split(new char[] {'\\'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = path.Split(new[] {'\\'}, StringSplitOptions.RemoveEmptyEntries);
             if(parts.Length > 0)
                 parts[0] = parts[0] + "\\";
             return parts;
@@ -803,25 +804,29 @@ namespace SubSonic.SubStage
 
         private static StageNode MakeNode(string text, StageNodeType nodeType, int nodeId, DataRow row)
         {
-            StageNode node = new StageNode(text, row);
-            node.NodeType = nodeType;
-            node.ImageKey = GetImageKey(nodeType);
-            node.SelectedImageKey = GetImageKey(nodeType);
-            node.RowId = nodeId;
-            node.DatabaseName = text;
-            node.SubSonicName = text;
+            StageNode node = new StageNode(text, row)
+                                 {
+                                     NodeType = nodeType,
+                                     ImageKey = GetImageKey(nodeType),
+                                     SelectedImageKey = GetImageKey(nodeType),
+                                     RowId = nodeId,
+                                     DatabaseName = text,
+                                     SubSonicName = text
+                                 };
             return node;
         }
 
         private static StageNode MakeNode(string text, string databaseName, string subSonicName, StageNodeType nodeType, string nodeKey, DataRow row)
         {
-            StageNode node = new StageNode(text, row);
-            node.NodeType = nodeType;
-            node.ImageKey = GetImageKey(nodeType);
-            node.SelectedImageKey = GetImageKey(nodeType);
-            node.ItemKey = nodeKey;
-            node.DatabaseName = databaseName;
-            node.SubSonicName = subSonicName;
+            StageNode node = new StageNode(text, row)
+                                 {
+                                     NodeType = nodeType,
+                                     ImageKey = GetImageKey(nodeType),
+                                     SelectedImageKey = GetImageKey(nodeType),
+                                     ItemKey = nodeKey,
+                                     DatabaseName = databaseName,
+                                     SubSonicName = subSonicName
+                                 };
             return node;
         }
 
@@ -907,27 +912,31 @@ namespace SubSonic.SubStage
 
         private static CustomProperty CreateCustomProperty(DataRow row, DataColumn dc, bool readOnly, bool visible, string category)
         {
-            CustomProperty cp = new CustomProperty();
-            cp.Name = dc.ColumnName;
-            cp.Tag = dc.ColumnName + "|" + row[0];
-            cp.IsReadOnly = readOnly;
-            cp.Visible = visible;
-            cp.Value = row[dc];
-            cp.Description = dc.Caption;
-            cp.Category = category;
-            cp.DefaultValue = dc.DefaultValue;
+            CustomProperty cp = new CustomProperty
+                                    {
+                                        Name = dc.ColumnName,
+                                        Tag = dc.ColumnName + "|" + row[0],
+                                        IsReadOnly = readOnly,
+                                        Visible = visible,
+                                        Value = row[dc],
+                                        Description = dc.Caption,
+                                        Category = category,
+                                        DefaultValue = dc.DefaultValue
+                                    };
             return cp;
         }
 
         private static CustomProperty CreateCustomProperty(string propertyName, string propertyValue, string description)
         {
-            CustomProperty cp = new CustomProperty();
-            cp.Name = propertyName;
-            cp.Value = propertyValue ?? String.Empty;
-            cp.IsReadOnly = true;
-            cp.IsBrowsable = false;
-            cp.Visible = true;
-            cp.Description = description;
+            CustomProperty cp = new CustomProperty
+                                    {
+                                        Name = propertyName,
+                                        Value = propertyValue ?? String.Empty,
+                                        IsReadOnly = true,
+                                        IsBrowsable = false,
+                                        Visible = true,
+                                        Description = description
+                                    };
             return cp;
         }
 
@@ -1412,7 +1421,7 @@ namespace SubSonic.SubStage
             turboCompiler.Run();
             foreach(TurboTemplate template in turboCompiler.Templates)
             {
-                ShowStatus(String.Concat("Writing ", template.TemplateName, " as ", template.OutputPath.Substring(template.OutputPath.LastIndexOf("\\") + 1)));
+                ShowStatus(String.Format("Writing {0} as {1}", template.TemplateName, template.OutputPath.Substring(template.OutputPath.LastIndexOf("\\") + 1)));
                 Files.CreateToFile(template.OutputPath, template.FinalCode);
             }
 
@@ -1435,29 +1444,32 @@ namespace SubSonic.SubStage
             ServerConnection sconn = new ServerConnection(conn);
             Microsoft.SqlServer.Management.Smo.Server server = new Microsoft.SqlServer.Management.Smo.Server(sconn);
             Database db = server.Databases[cString.InitialCatalog];
-            Transfer trans = new Transfer(db);
-
-            //set the objects to copy
-            trans.CopyAllTables = true;
-            trans.CopyAllDefaults = true;
-            trans.CopyAllUserDefinedFunctions = true;
-            trans.CopyAllStoredProcedures = true;
-            trans.CopyAllViews = true;
-            trans.CopyData = true;
-            trans.CopySchema = true;
-            trans.DropDestinationObjectsFirst = true;
-            trans.UseDestinationTransaction = true;
-
-            trans.Options.AnsiFile = true;
-            trans.Options.ClusteredIndexes = true;
-            trans.Options.DriAll = true;
-            trans.Options.IncludeHeaders = true;
-            trans.Options.IncludeIfNotExists = true;
-            trans.Options.SchemaQualify = true;
+            Transfer trans = new Transfer(db)
+                                 {
+                                     //set the objects to copy
+                                     CopyAllTables = true,
+                                     CopyAllDefaults = true,
+                                     CopyAllUserDefinedFunctions = true,
+                                     CopyAllStoredProcedures = true,
+                                     CopyAllViews = true,
+                                     CopyData = true,
+                                     CopySchema = true,
+                                     DropDestinationObjectsFirst = true,
+                                     UseDestinationTransaction = true,
+                                     Options =
+                                         {
+                                             AnsiFile = true,
+                                             ClusteredIndexes = true,
+                                             DriAll = true,
+                                             IncludeHeaders = true,
+                                             IncludeIfNotExists = true,
+                                             SchemaQualify = true
+                                         }
+                                 };
 
             StringCollection script = trans.ScriptTransfer();
 
-            foreach(string s in script)
+            foreach (string s in script)
                 result.AppendLine(s);
 
             result.AppendLine();
@@ -1481,7 +1493,7 @@ namespace SubSonic.SubStage
             else
             {
                 activeProject = ((MasterStore.ProvidersRow)configSource).Project;
-                activeProviders = new MasterStore.ProvidersRow[] {(MasterStore.ProvidersRow)configSource};
+                activeProviders = new[] {(MasterStore.ProvidersRow)configSource};
             }
 
             SubSonicSection section = new SubSonicSection();
@@ -1818,7 +1830,7 @@ namespace SubSonic.SubStage
             if(tag != null)
             {
                 string tagValue = tag.ToString();
-                return tagValue.Split(new char[] {'|'})[0];
+                return tagValue.Split(new[] {'|'})[0];
             }
             return String.Empty;
         }

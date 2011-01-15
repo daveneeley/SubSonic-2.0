@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SubStage")]
-[assembly: AssemblyCopyright("Copyright ©2006-2008 The SubSonic Project")]
+[assembly: AssemblyCopyright("Copyright ©2006-2009 The SubSonic Project")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("2.1.1.0")]
-[assembly: AssemblyFileVersion("2.1.1.0")]
+[assembly: AssemblyVersion("2.2.1.0")]
+[assembly: AssemblyFileVersion("2.2.1.0")]

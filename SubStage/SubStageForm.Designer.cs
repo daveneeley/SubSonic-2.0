@@ -585,7 +585,7 @@ namespace SubSonic.SubStage
             this.webBrowser2.ScriptErrorsSuppressed = true;
             this.webBrowser2.Size = new System.Drawing.Size(623, 263);
             this.webBrowser2.TabIndex = 1;
-            this.webBrowser2.Url = new System.Uri("http://forums.subsonicproject.com/forums/TopicsActive.aspx", System.UriKind.Absolute);
+            this.webBrowser2.Url = new System.Uri("http://stackoverflow.com/questions/tagged/subsonic", System.UriKind.Absolute);
             // 
             // tabMasterWorkItems
             // 
@@ -608,7 +608,7 @@ namespace SubSonic.SubStage
             this.webBrowser3.ScriptErrorsSuppressed = true;
             this.webBrowser3.Size = new System.Drawing.Size(623, 263);
             this.webBrowser3.TabIndex = 1;
-            this.webBrowser3.Url = new System.Uri("http://www.codeplex.com/subsonic/WorkItem/List.aspx", System.UriKind.Absolute);
+            this.webBrowser3.Url = new System.Uri("http://code.google.com/p/subsonicproject/issues/list", System.UriKind.Absolute);
             // 
             // ilTabs
             // 

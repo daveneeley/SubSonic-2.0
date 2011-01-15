@@ -43,15 +43,6 @@ namespace SubSonic.SubStage
 
     public class StageNode : TreeNode
     {
-        private MasterStore.ConnectionStringsRow _connectionString;
-        private string _databaseName;
-        private bool _isPrimaryKeyColumn;
-        private string _itemKey;
-        private StageNodeType _nodeType;
-        private MasterStore.ProjectsRow _project;
-        private MasterStore.ProvidersRow _provider;
-        private int _rowId;
-        private string _subSonicName;
         private bool _tableHasPrimaryKey = true;
 
         public StageNode(string nodeText, DataRow row)
@@ -71,53 +62,21 @@ namespace SubSonic.SubStage
             }
         }
 
-        public MasterStore.ConnectionStringsRow ConnectionString
-        {
-            get { return _connectionString; }
-            set { _connectionString = value; }
-        }
+        public MasterStore.ConnectionStringsRow ConnectionString { get; set; }
 
-        public MasterStore.ProvidersRow Provider
-        {
-            get { return _provider; }
-            set { _provider = value; }
-        }
+        public MasterStore.ProvidersRow Provider { get; set; }
 
-        public MasterStore.ProjectsRow Project
-        {
-            get { return _project; }
-            set { _project = value; }
-        }
+        public MasterStore.ProjectsRow Project { get; set; }
 
-        public StageNodeType NodeType
-        {
-            get { return _nodeType; }
-            set { _nodeType = value; }
-        }
+        public StageNodeType NodeType { get; set; }
 
-        public int RowId
-        {
-            get { return _rowId; }
-            set { _rowId = value; }
-        }
+        public int RowId { get; set; }
 
-        public string ItemKey
-        {
-            get { return _itemKey; }
-            set { _itemKey = value; }
-        }
+        public string ItemKey { get; set; }
 
-        public string DatabaseName
-        {
-            get { return _databaseName; }
-            set { _databaseName = value; }
-        }
+        public string DatabaseName { get; set; }
 
-        public string SubSonicName
-        {
-            get { return _subSonicName; }
-            set { _subSonicName = value; }
-        }
+        public string SubSonicName { get; set; }
 
         public bool IsProviderNode
         {
@@ -154,11 +113,7 @@ namespace SubSonic.SubStage
             get { return (NodeType == StageNodeType.ColumnNode || NodeType == StageNodeType.ColumnPrimaryKeyNode); }
         }
 
-        public bool IsPrimaryKeyColumn
-        {
-            get { return _isPrimaryKeyColumn; }
-            set { _isPrimaryKeyColumn = value; }
-        }
+        public bool IsPrimaryKeyColumn { get; set; }
 
         public bool TableHasPrimaryKey
         {
