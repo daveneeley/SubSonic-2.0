@@ -19,6 +19,7 @@ namespace SubSonic.Tests
     /// <summary>
     /// Summary for the AssemblyCleaner class
     /// </summary>
+    [AssemblyFixture]
     public static class AssemblyCleaner
     {
         /// <summary>

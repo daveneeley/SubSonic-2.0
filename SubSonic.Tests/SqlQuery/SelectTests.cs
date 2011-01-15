@@ -715,33 +715,39 @@ namespace SubSonic.Tests.SqlQuery
         #region Distinct Support
 
         [Test]
-        public void SqlQuery_when_setting_distinct_it_should_set_IsDistinct()
+        public void SqlQuery_Should_Set_IsDistinct_When_Distinct()
         {
             SubSonic.SqlQuery query= new Select(Product.SupplierIDColumn).From<Product>().Distinct();
             Assert.IsTrue(query.IsDistinct);
         }
 
         [Test]
-        public void SqlQuery_should_handle_distinct()
+        public void SqlQuery_Should_Handle_Distinct()
         {
             ProductCollection select = new Select(Product.SupplierIDColumn).From<Product>().Distinct().ExecuteAsCollection<ProductCollection>();
-
             Assert.AreEqual(29, select.Count);
-
         }
 
         [Test]
-        public void SqlQuery_GetRecordCount_should_handle_distinct()
+        public void SqlQuery_GetRecordCount_Should_Handle_Distinct()
         {
             int select = new Select(Product.SupplierIDColumn).From<Product>().Distinct().GetRecordCount();
-
             Assert.AreEqual(29, select);
         }
 
         [Test]
-        public void SqlQuery_Can_Compare_Columns() {
+        public void SqlQuery_GetRecordCount_Should_Handle_Distinct_With_Order_By()
+        {
+            int recordCount = DB.Select(Product.Columns.ProductID, Product.Columns.ProductName).From<Product>().Distinct().InnerJoin<Category>().OrderAsc(Category.Columns.CategoryName).GetRecordCount();
+            Assert.AreEqual(77, recordCount);
+        }
+
+
+        [Test]
+        public void SqlQuery_Can_Compare_Columns()
+        {
             //var result = new Select().From("Products").WhereExpression(;
-    
+
         }
 
         #endregion

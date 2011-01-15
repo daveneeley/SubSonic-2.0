@@ -114,7 +114,7 @@ namespace SubSonic.Tests
         [Row("01 Jan 2007", "01 Jan 2008 01:30:40", "1 year ago")]
         [Row("01 Jan 2007", "01 Jan 2207 01:30:40", "200 years ago")]
         [Row("01 Jan 2007", "01 May 2207 01:30:40", "200 years, 4 months ago")]
-        [RowTest]
+        [Test]
         public void Dates_ReadableDiff(DateTime startTime, DateTime endTime, string expected)
         {
             Assert.AreEqual(expected, Dates.ReadableDiff(startTime, endTime));
@@ -148,7 +148,7 @@ namespace SubSonic.Tests
         [Row("0000000000000000", false)]
         [Row("000000000000000", false)]
         [Row("0000000000000", false)]
-        [RowTest]
+        [Test]
         public void Validation_IsCreditCardAny(string creditCardNumber, bool expected)
         {
             Assert.AreEqual(expected, Validation.IsCreditCardAny(creditCardNumber));
