@@ -95,8 +95,9 @@ namespace SubSonic.SubCommander
                 trans.UseDestinationTransaction = true;
 
                 trans.Options.AnsiFile = true;
-                trans.Options.WithDependencies = true; //there is an error if you are running SQL Server 2008 SP1 that requires cumulative update 5 or higher..see http://support.microsoft.com/kb/976413
-                trans.Options.DriAll = false;
+                trans.Options.ScriptBatchTerminator = true;
+                trans.Options.WithDependencies = true; //if this setting is false and you get an error, try installing SQL Server 2008 SP1 cumulative update 5 or higher..see http://support.microsoft.com/kb/976413
+                trans.Options.DriAll = true;
                 trans.Options.IncludeHeaders = false;
                 trans.Options.IncludeIfNotExists = true;
                 trans.Options.SchemaQualify = true;
