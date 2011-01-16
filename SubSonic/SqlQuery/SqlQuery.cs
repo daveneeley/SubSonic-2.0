@@ -504,7 +504,9 @@ namespace SubSonic
             //loop the constraints and add the values
             foreach(Constraint c in qry.Constraints)
             {
-                if (c.ColumnNameShouldBeParameterized)
+                if (c.ConstructionFragment == "##")
+                    continue;
+                if (c.ColumnNameShouldBeParameterized && (c.Comparison != Comparison.BetweenAndColumns || (c.Comparison == Comparison.BetweenAndColumns && c.ColumnName.Contains(LiteralQueryParam.STRING_LITERAL_LEFT_NAME))))
                 {
                     cmd.Parameters.Add(String.Concat(c.ColumnName, qry.Constraints.IndexOf(c)), c.ColumnValue, c.DbType);
                 }

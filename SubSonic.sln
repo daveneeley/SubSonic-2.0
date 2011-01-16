@@ -185,7 +185,6 @@ Global
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release (SQL Server Only)|Any CPU.ActiveCfg = Debug|Any CPU
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release (SQL Server Only)|Any CPU.Build.0 = Debug|Any CPU
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release (SQL Server Only)|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{851C9975-73B4-4973-944F-6C01658C7558}.Release (SQL Server Only)|Mixed Platforms.Build.0 = Debug|Any CPU
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release|.NET.ActiveCfg = Debug|Any CPU
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{851C9975-73B4-4973-944F-6C01658C7558}.Release|Any CPU.Build.0 = Debug|Any CPU

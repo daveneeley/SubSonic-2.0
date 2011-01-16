@@ -10,7 +10,7 @@ namespace SubSonic
     public class LiteralQueryParam
     {
         internal object m_literalObject = string.Empty;
-        private const string STRING_LITERAL_LEFT_NAME = @"SubSonicLiteralLeft";
+        public const string STRING_LITERAL_LEFT_NAME = @"SubSonicLiteralLeft";
         private const string STRING_LITERAL_RIGHT_NAME = @"SubSonicLiteralRight";
 
 

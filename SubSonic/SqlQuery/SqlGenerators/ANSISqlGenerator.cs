@@ -247,7 +247,7 @@ namespace SubSonic
             bool foundColumn = false;
             int currentConstraintIndex = query.Constraints.IndexOf(c);
 
-            if (c.ColumnNameShouldBeParameterized)
+            if (c.ColumnNameShouldBeParameterized && c.ConstructionFragment != "##")
             {
                 columnName = String.Concat(Utility.PrefixParameter(c.ColumnName, query.Provider), currentConstraintIndex);
                 foundColumn = true;
