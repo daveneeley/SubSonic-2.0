@@ -76,7 +76,12 @@ namespace SubSonic.Parser
             foreach(string childname in childNodeNames.Keys)
             {
                 ArrayList alChild = (ArrayList)childNodeNames[childname];
-                if(alChild.Count == 1)
+                //http://stackoverflow.com/questions/4019063/parsing-json-with-javascript
+                //I have lots of problems with single-item arrays that don't look like arrays
+                //I could comment out this if and make everything an array
+                //or check if the first child is a string as mentioned in the original comments
+                //on http://www.phdcc.com/xml2json.htm
+                if(alChild.Count == 1 && alChild[0] is string)
                     OutputNode(childname, alChild[0], sbJSON, true);
                 else
                 {
