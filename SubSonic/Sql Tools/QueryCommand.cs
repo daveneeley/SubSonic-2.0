@@ -169,7 +169,96 @@ namespace SubSonic
     /// <summary>
     /// Summary for the QueryCommandCollection class
     /// </summary>
-    public class QueryCommandCollection : List<QueryCommand> {}
+    public class QueryCommandCollection : IList<QueryCommand> 
+    {
+        //facading the List<QueryCommand> so that the add method
+        //can be checking items for null and exclude those
+        private List<QueryCommand> m_list = new List<QueryCommand>();
+        public int IndexOf(QueryCommand item)
+        {
+            return m_list.IndexOf(item);
+        }
+
+        public void Insert(int index, QueryCommand item)
+        {
+            if (item != null)
+                m_list.Insert(index, item);
+        }
+
+        public void RemoveAt(int index)
+        {
+            m_list.RemoveAt(index);
+        }
+
+        public QueryCommand this[int index]
+        {
+            get
+            {
+                return m_list[index];
+            }
+            set
+            {
+                m_list[index] = value;
+            }
+        }
+
+        public void Add(QueryCommand item)
+        {
+            if (item != null)
+                m_list.Add(item);
+        }
+
+        public void AddRange(QueryCommandCollection items)
+        {
+            if (items == null)
+                return;
+            foreach (QueryCommand item in items)
+            {
+                //don't need to check for null here because it's being done in the Add method
+                Add(item);
+            }
+        }
+
+        public void Clear()
+        {
+            m_list.Clear();
+        }
+
+        public bool Contains(QueryCommand item)
+        {
+            return m_list.Contains(item);
+        }
+
+        public void CopyTo(QueryCommand[] array, int arrayIndex)
+        {
+            m_list.CopyTo(array, arrayIndex);
+        }
+
+        public int Count
+        {
+            get { return m_list.Count; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        public bool Remove(QueryCommand item)
+        {
+            return m_list.Remove(item);
+        }
+
+        public IEnumerator<QueryCommand> GetEnumerator()
+        {
+            return m_list.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 
     /// <summary>
     /// Summary for the QueryCommand class
