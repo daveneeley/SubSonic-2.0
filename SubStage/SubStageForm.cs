@@ -1408,9 +1408,12 @@ namespace SubSonic.SubStage
                                 if(CodeService.ShouldGenerate(tbl, provider.Name))
                                 {
                                     Utility.WriteTrace(String.Format("Scripting Table: {0}", tbl));
-                                    string dataScript = DataService.ScriptData(tbl, provider.Name);
-                                    sw.Write(dataScript);
-                                    sw.Write(Environment.NewLine);
+                                    Dictionary<string, StringBuilder> dict = DataService.ScriptData(tbl, provider.Name);
+                                    foreach (StringBuilder sb in dict.Values)
+                                    {
+                                        sw.Write(sb.ToString());
+                                        sw.Write(Environment.NewLine);
+                                    }
                                 }
                             }
                         }
