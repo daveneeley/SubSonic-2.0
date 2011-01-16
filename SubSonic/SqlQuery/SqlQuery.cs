@@ -195,6 +195,17 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Puts a literal value on the left side of the comparison and parameterizes it
+        /// </summary>
+        /// <param name="lit"></param>
+        /// <returns></returns>
+        public Constraint Where(LiteralQueryParam lit)
+        {
+            return new Constraint(ConstraintType.Where, lit, this);
+        }
+
+
+        /// <summary>
         /// Wheres the expression.
         /// </summary>
         /// <param name="columnName">Name of the column.</param>
@@ -268,6 +279,16 @@ namespace SubSonic
                                    IsAggregate = true
                                };
             return c;
+        }
+
+        /// <summary>
+        /// Ors the specified column name.
+        /// </summary>
+        /// <param name="lit">The string literal value to be passed on the left side of the argument</param>
+        /// <returns></returns>
+        public Constraint Or(LiteralQueryParam lit)
+        {
+            return new Constraint(ConstraintType.Or, lit, this);
         }
 
         #endregion
@@ -344,6 +365,16 @@ namespace SubSonic
             return c;
         }
 
+        /// <summary>
+        /// Puts a literal value on the left side of the comparison and parameterizes it
+        /// </summary>
+        /// <param name="lit"></param>
+        /// <returns></returns>
+        public Constraint And(LiteralQueryParam lit)
+        {
+            return new Constraint(ConstraintType.And, lit, this);
+        }
+
         #endregion
 
 
@@ -353,7 +384,16 @@ namespace SubSonic
         /// <returns></returns>
         public SqlQuery OpenExpression()
         {
-            Constraint c = new Constraint(ConstraintType.Where, "##", "##", "##", this)
+            return OpenExpression(ConstraintType.Where);
+        }
+
+        /// <summary>
+        /// Opens the expression.
+        /// </summary>
+        /// <returns></returns>
+        public SqlQuery OpenExpression(ConstraintType t)
+        {
+            Constraint c = new Constraint(t, "##", "##", "##", this)
                                {
                                    Comparison = Comparison.OpenParentheses
                                };
@@ -464,6 +504,10 @@ namespace SubSonic
             //loop the constraints and add the values
             foreach(Constraint c in qry.Constraints)
             {
+                if (c.ColumnNameShouldBeParameterized)
+                {
+                    cmd.Parameters.Add(String.Concat(c.ColumnName, qry.Constraints.IndexOf(c)), c.ColumnValue, c.DbType);
+                }
                 if(c.Comparison == Comparison.BetweenAnd)
                 {
                     cmd.Parameters.Add(String.Concat(c.ParameterName, "_start"), c.StartValue, c.DbType);
@@ -1910,7 +1954,7 @@ namespace SubSonic
 
             if(!String.IsNullOrEmpty(tableName))
                 providerTable = tableName;
-            else if(FromTables.Count > 0)
+            else if(FromTables.Count > 0 && !string.IsNullOrEmpty(FromTables[0].TableName))
                 providerTable = FromTables[0].TableName;
 
             if(!String.IsNullOrEmpty(columnName))

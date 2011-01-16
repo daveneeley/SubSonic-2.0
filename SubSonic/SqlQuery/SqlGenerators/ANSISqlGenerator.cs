@@ -245,15 +245,25 @@ namespace SubSonic
         {
             string columnName = String.Empty;
             bool foundColumn = false;
-            if(c.ConstructionFragment == c.ColumnName && c.ConstructionFragment != "##")
+            int currentConstraintIndex = query.Constraints.IndexOf(c);
+
+            if (c.ColumnNameShouldBeParameterized)
             {
+                columnName = String.Concat(Utility.PrefixParameter(c.ColumnName, query.Provider), currentConstraintIndex);
+                foundColumn = true;
+                //HACK: The constraint parameter name is only set for string literals
+                c.ParameterName = string.Concat(c.ParameterName, currentConstraintIndex);
+            }
+            else if(c.ConstructionFragment == c.ColumnName && c.ConstructionFragment != "##")
+            {
+                //find the table column for this column name
                 TableSchema.TableColumn col = FindColumn(c.ColumnName);
 
                 if (c.Column != null && col != null)
                 {
                     columnName = c.Column.QualifiedName;
                     foundColumn = true;
-                    c.ParameterName = String.Concat(col.ParameterName, query.Constraints.IndexOf(c));
+                    c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
                 }
                 else
                 {
@@ -262,7 +272,7 @@ namespace SubSonic
                         columnName = col.QualifiedName;
                         c.DbType = col.DataType;
                         foundColumn = true;
-                        c.ParameterName = String.Concat(col.ParameterName, query.Constraints.IndexOf(c));
+                        c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
                     }
                 }
             }
@@ -293,12 +303,12 @@ namespace SubSonic
                     else
                         columnName = Utility.FastReplace(c.ConstructionFragment, col.ColumnName, col.QualifiedName, StringComparison.InvariantCultureIgnoreCase);
 
-                    c.ParameterName = String.Concat(col.ParameterName, query.Constraints.IndexOf(c));
+                    c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
                     c.DbType = col.DataType;
                 }
                 else
                 {
-                    c.ParameterName = Utility.PrefixParameter(rawColumnName, query.Provider) + query.Constraints.IndexOf(c);
+                    c.ParameterName = Utility.PrefixParameter(rawColumnName, query.Provider) + currentConstraintIndex;
                     columnName = c.ConstructionFragment;
                 }
             }
@@ -307,8 +317,16 @@ namespace SubSonic
 
             if(!isFirst)
             {
-                constraintOperator = Enum.GetName(typeof(ConstraintType), c.Condition);
-                constraintOperator = String.Concat(" ", constraintOperator.ToUpper(), " ");
+                Constraint last = query.Constraints[currentConstraintIndex - 1];
+                if (last.Comparison == Comparison.OpenParentheses && (last.Condition == ConstraintType.And || last.Condition == ConstraintType.Or))
+                {
+                    constraintOperator = string.Empty;
+                }
+                else
+                {
+                    constraintOperator = Enum.GetName(typeof(ConstraintType), c.Condition);
+                    constraintOperator = String.Concat(" ", constraintOperator.ToUpper(), " ");
+                }
             }
 
             if(c.Comparison != Comparison.OpenParentheses && c.Comparison != Comparison.CloseParentheses)
@@ -367,12 +385,16 @@ namespace SubSonic
             else if (c.Comparison == Comparison.OpenParentheses)
             {
                 expressionIsOpen = true;
-                sb.Append("(");
+                if (c.Condition == ConstraintType.And)
+                    sb.Append(SqlFragment.AND);
+                else if (c.Condition == ConstraintType.Or)
+                    sb.Append(SqlFragment.OR);
+                sb.Append(Constraint.GetComparisonOperator(c.Comparison));
             }
             else if (c.Comparison == Comparison.CloseParentheses)
             {
                 expressionIsOpen = false;
-                sb.Append(")");
+                sb.Append(Constraint.GetComparisonOperator(c.Comparison));
             }
             else
             {

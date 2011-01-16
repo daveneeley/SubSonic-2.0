@@ -68,6 +68,40 @@ namespace SubSonic
         /// Initializes a new instance of the <see cref="Constraint"/> class.
         /// </summary>
         /// <param name="condition">The condition.</param>
+        /// <param name="lit">The string literal to be passed on the left side of the comparision</param>
+        public Constraint(ConstraintType condition, LiteralQueryParam lit)
+        {
+            Condition = condition;
+            ColumnName = lit.ColumnName;
+            ColumnValue = lit.ColumnValue;
+            QualifiedColumnName = lit.ColumnName;
+            ConstructionFragment = lit.ColumnName;
+            ColumnNameShouldBeParameterized = true;
+            ParameterName = lit.ParameterName;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Constraint"/> class.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
+        /// <param name="lit">The string literal to be passed on the left side of the comparision</param>
+        /// <param name="sqlQuery">The <see cref="SqlQuery"/> to be used.</param>
+        public Constraint(ConstraintType condition, LiteralQueryParam lit, SqlQuery sqlQuery)
+        {
+            Condition = condition;
+            ColumnName = lit.ColumnName;
+            ColumnValue = lit.ColumnValue;
+            QualifiedColumnName = lit.ColumnName;
+            ConstructionFragment = lit.ColumnName;
+            ColumnNameShouldBeParameterized = true;
+            ParameterName = lit.ParameterName;
+            query = sqlQuery;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Constraint"/> class.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
         /// <param name="constraintColumnName">Name of the constraint column.</param>
         /// <param name="constraintQualifiedColumnName">Name of the constraint qualified column.</param>
         public Constraint(ConstraintType condition, string constraintColumnName, string constraintQualifiedColumnName)
@@ -163,6 +197,8 @@ namespace SubSonic
         private ConstraintType condition = ConstraintType.Where;
         private string parameterName;
         private object paramValue;
+        private object columnValue;
+        private bool columnNameShouldBeParameterized = false;
 
         /// <summary>
         /// Gets or sets the column.
@@ -221,6 +257,16 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Gets or sets the column value. Only set by <see cref="LiteralQueryParam"/> objects
+        /// </summary>
+        /// <value>The column value.</value>
+        public object ColumnValue
+        {
+            get { return columnValue; }
+            set { columnValue = value; }
+        }
+
+        /// <summary>
         /// Gets or sets the start value.
         /// </summary>
         /// <value>The start value.</value>
@@ -252,6 +298,15 @@ namespace SubSonic
         {
             get { return parameterName ?? ColumnName; }
             set { parameterName = value; }
+        }
+
+        /// <summary>
+        /// Determines whether the column name of the constraint is actually a value that should be parameterized
+        /// </summary>
+        public bool ColumnNameShouldBeParameterized
+        {
+            get { return columnNameShouldBeParameterized; }
+            set { columnNameShouldBeParameterized = value; }
         }
 
         /// <summary>
@@ -695,9 +750,14 @@ namespace SubSonic
         /// <returns></returns>
         public SqlQuery IsBetweenAnd(TableSchema.TableColumn col1, TableSchema.TableColumn col2)
         {
+            return IsBetweenAnd(col1, col2, true);
+        }
+
+        public SqlQuery IsBetweenAnd(TableSchema.TableColumn col1, TableSchema.TableColumn col2, bool useQualifiedNames)
+        {
             Comparison = Comparison.BetweenAndColumns;
-            StartValue = col1.QualifiedName;
-            EndValue = col2.QualifiedName;
+            StartValue = (useQualifiedNames ? col1.QualifiedName : col1.ColumnName);
+            EndValue = (useQualifiedNames ? col2.QualifiedName : col2.ColumnName);
             DbType = query.GetConstraintDbType(TableName, ColumnName, col1);
             query.Constraints.Add(this);
             return query;

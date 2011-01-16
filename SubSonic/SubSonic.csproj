@@ -41,6 +41,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -176,6 +178,7 @@
     <Compile Include="Migrations\Migration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sql Tools\ISubSonicRepository.cs" />
+    <Compile Include="Sql Tools\LiteralQueryParam.cs" />
     <Compile Include="Sql Tools\SubSonicRepository.cs" />
     <Compile Include="Sql Tools\TableSchema.cs" />
     <Compile Include="SqlQuery\Aggregate.cs" />
