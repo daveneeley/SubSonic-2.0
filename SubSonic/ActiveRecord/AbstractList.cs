@@ -258,6 +258,18 @@ namespace SubSonic
         }
 
         /// <summary>
+        /// Returns the first item from the collection with the specified key value
+        /// </summary>
+        /// <param name="col">The table column to search</param>
+        /// <param name="key">The key value to find</param>
+        /// <returns>The first item matching the key value</returns>
+        public ItemType FindItem(TableSchema.TableColumn col, object key)
+        {
+            int idx = Find(col.PropertyName, key);
+            return this[idx];
+        }
+
+        /// <summary>
         /// Gets the property descriptors. Used to evaluate the suitability 
         /// of properties on the passed type for data binding
         /// </summary>
@@ -275,6 +287,21 @@ namespace SubSonic
 
 
         #region Utility
+        /// <summary>
+        /// Returns the values in a specified column within the collection as a List
+        /// </summary>
+        /// <typeparam name="T">The type of the items in the new list</typeparam>
+        /// <param name="col">The column containing the values</param>
+        /// <returns></returns>
+        public List<T> ToList<T>(TableSchema.TableColumn col)
+        {
+            List<T> list = new List<T>();
+            foreach (ItemType it in this)
+            {
+                list.Add(it.GetColumnValue<T>(col.PropertyName));
+            }
+            return list;
+        }
 
         /// <summary>
         /// Returns the collection's items in a DataTable.
