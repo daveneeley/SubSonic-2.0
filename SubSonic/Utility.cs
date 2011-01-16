@@ -360,7 +360,24 @@ namespace SubSonic.Utilities
             }
             return false;
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="comparison"></param>
+        /// <param name="matchStrings"></param>
+        /// <param name="findString"></param>
+        /// <returns></returns>
+        public static bool MatchesOne(SubSonic.Comparison comparison, string[] matchStrings, string findString)
+        {
+            for (int i = 0; i < matchStrings.Length; i++)
+            {
+                if (IsMatch(comparison, matchStrings[i], findString))
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Performs a case-insensitive comparison of two passed strings, 
         /// with an option to trim the strings before comparison.
