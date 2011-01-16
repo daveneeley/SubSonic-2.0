@@ -17,6 +17,8 @@ using System.Data.SqlClient;
 using System.Text;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace SubSonic.SubCommander
 {
@@ -40,8 +42,8 @@ namespace SubSonic.SubCommander
         /// Scripts the schema.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <returns></returns>
-        public static string ScriptSchema(string connectionString, DataProvider provider)
+        /// <returns>A Hashtable containing a list of table names and their corresponding StringBuilder</returns>
+        public static Dictionary<string, StringBuilder> ScriptSchema(string connectionString, DataProvider provider, bool oneFile)
         {
             StringBuilder result = new StringBuilder();
 
@@ -50,90 +52,157 @@ namespace SubSonic.SubCommander
             ServerConnection sconn = new ServerConnection(conn);
             Server server = new Server(sconn);
             Database db = server.Databases[cString.InitialCatalog];
-            Transfer trans = new Transfer(db);
 
-            //set the objects to copy
-            trans.CopyAllTables = false;
-            trans.CopyAllDefaults = false;
-            trans.CopyAllUserDefinedFunctions = true;//we don't have logic in SubSonic to decide which ones should or should not be generated, so better to be safe.
-            trans.CopyAllStoredProcedures = false;
-            trans.CopyAllViews = false;
-            trans.CopySchema = false;
-            trans.CopyAllLogins = false;
+            Dictionary<string, StringBuilder> dict = new Dictionary<string, StringBuilder>();
 
-            foreach (Table tbl in db.Tables)
+            if (oneFile)
             {
-                if (!CodeService.ShouldGenerate(tbl.Name, provider.Name))
-                    continue;
-                Utilities.Utility.WriteTrace(string.Format("Adding table {0}", tbl.Name));
-                trans.ObjectList.Add(tbl);
+                Transfer trans = new Transfer(db);
+
+                //set the objects to copy
+                trans.CopyAllTables = false;
+                trans.CopyAllDefaults = false;
+                trans.CopyAllUserDefinedFunctions = true;//we don't have logic in SubSonic to decide which ones should or should not be generated, so better to be safe.
+                trans.CopyAllStoredProcedures = false;
+                trans.CopyAllViews = false;
+                trans.CopySchema = false;
+                trans.CopyAllLogins = false;
+
+                foreach (Table tbl in db.Tables)
+                {
+                    if (!CodeService.ShouldGenerate(tbl.Name, provider.Name))
+                        continue;
+                    Utilities.Utility.WriteTrace(string.Format("Adding table {0}", tbl.Name));
+                    trans.ObjectList.Add(tbl);
+                }
+                foreach (View v in db.Views)
+                {
+                    if (!CodeService.ShouldGenerate(v.Name, provider.Name))
+                        continue;
+                    Utilities.Utility.WriteTrace(string.Format("Adding view {0}", v.Name));
+                    trans.ObjectList.Add(v);
+                }
+                foreach (Microsoft.SqlServer.Management.Smo.StoredProcedure sp in db.StoredProcedures)
+                {
+                    if (!provider.UseSPs || !CodeService.ShouldGenerate(sp.Name, provider.IncludeProcedures, provider.ExcludeProcedures, provider))
+                        continue;
+                    Utilities.Utility.WriteTrace(string.Format("Adding sproc {0}", sp.Name));
+                    trans.ObjectList.Add(sp);
+                }
+
+                trans.CopyData = false;
+                trans.DropDestinationObjectsFirst = true;
+                trans.UseDestinationTransaction = true;
+
+                trans.Options.AnsiFile = true;
+                trans.Options.WithDependencies = true; //there is an error if you are running SQL Server 2008 SP1 that requires cumulative update 5 or higher..see http://support.microsoft.com/kb/976413
+                trans.Options.DriAll = false;
+                trans.Options.IncludeHeaders = false;
+                trans.Options.IncludeIfNotExists = true;
+                trans.Options.SchemaQualify = true;
+
+                Utilities.Utility.WriteTrace("Scripting objects...");
+
+                StringCollection script = trans.ScriptTransfer();
+
+                foreach (string s in script)
+                    result.AppendLine(s);
+                result.AppendLine();
+                result.AppendLine();
+
+                dict.Add(provider.Name, result);
+                return dict;
             }
-            foreach (View v in db.Views)
-            {
-                if (!CodeService.ShouldGenerate(v.Name, provider.Name))
-                    continue;
-                Utilities.Utility.WriteTrace(string.Format("Adding view {0}", v.Name));
-                trans.ObjectList.Add(v);
+            else 
+            { 
+                //use this method to append single tables and all of their dependencies one at a time
+                Scripter scr = new Scripter(server);
+                scr.Options.AnsiFile = true;
+                scr.Options.ClusteredIndexes = true;
+                scr.Options.DriAll = true;
+                scr.Options.IncludeHeaders = false;
+                scr.Options.IncludeIfNotExists = true;
+                scr.Options.SchemaQualify = true;
+                scr.Options.WithDependencies = false;
+
+                UrnCollection u = new UrnCollection();
+                foreach (Table tbl in db.Tables)
+                {
+                    if (CodeService.ShouldGenerate(tbl.Name, provider.Name))
+                    {
+                        u = new UrnCollection();
+                        u.Add(tbl.Urn);
+                        if (!tbl.IsSystemObject)
+                        {
+                            Utilities.Utility.WriteTrace(string.Format("Adding table {0}", tbl.Name));
+                            result = new StringBuilder();
+                            StringCollection sc = scr.Script(u);
+                            foreach (string s in sc)
+                                result.AppendLine(s);
+
+                            dict.Add(string.Concat("Table_",tbl.Name), result);
+                        }
+                    }
+                }
+                foreach (View v in db.Views)
+                {
+                    if (CodeService.ShouldGenerate(v.Name, provider.Name))
+                    {
+                        u = new UrnCollection();
+                        u.Add(v.Urn);
+                        if (!v.IsSystemObject)
+                        {
+                            Utilities.Utility.WriteTrace(string.Format("Adding view {0}", v.Name));
+                            result = new StringBuilder();
+                            StringCollection sc = scr.Script(u);
+                            foreach (string s in sc)
+                                result.AppendLine(s);
+
+                            dict.Add(string.Concat("View_",v.Name), result);
+                        }
+                    }
+                }
+
+                foreach (Microsoft.SqlServer.Management.Smo.StoredProcedure sp in db.StoredProcedures)
+                {
+                    if (CodeService.ShouldGenerate(sp.Name, provider.IncludeProcedures, provider.ExcludeProcedures, provider))
+                    {
+                        u = new UrnCollection();
+                        u.Add(sp.Urn);
+                        if (!sp.IsSystemObject)
+                        {
+                            Utilities.Utility.WriteTrace(string.Format("Adding sproc {0}", sp.Name));
+                            result = new StringBuilder();
+                            StringCollection sc = scr.Script(u);
+                            foreach (string s in sc)
+                                result.AppendLine(s);
+
+                            dict.Add(string.Concat("Sproc_",sp.Name), result);
+                        }
+                    }
+                }
+
+                foreach (UserDefinedFunction udf in db.UserDefinedFunctions)
+                {
+                    if (CodeService.ShouldGenerate(udf.Name, provider.IncludeProcedures, provider.ExcludeProcedures, provider))
+                    {
+                        u = new UrnCollection();
+                        u.Add(udf.Urn);
+                        if (!udf.IsSystemObject)
+                        {
+                            Utilities.Utility.WriteTrace(string.Format("Adding udf {0}", udf.Name));
+                            result = new StringBuilder();
+                            StringCollection sc = scr.Script(u);
+                            foreach (string s in sc)
+                                result.AppendLine(s);
+
+                            dict.Add(string.Concat("UDF_", udf.Name), result);
+                        }
+                    }
+                }
+
+                return dict;
             }
-            foreach (Microsoft.SqlServer.Management.Smo.StoredProcedure sp in db.StoredProcedures)
-            {
-                if (!provider.UseSPs || !CodeService.ShouldGenerate(sp.Name, provider.IncludeProcedures, provider.ExcludeProcedures, provider))
-                    continue;
-                Utilities.Utility.WriteTrace(string.Format("Adding sproc {0}", sp.Name));
-                trans.ObjectList.Add(sp);
-            }
-
-            trans.CopyData = false;
-            trans.DropDestinationObjectsFirst = true;
-            trans.UseDestinationTransaction = true;
-
-            trans.Options.AnsiFile = true;
-            trans.Options.WithDependencies = false; //there is an error if you are running SQL Server 2008 SP1 that requires cumulative update 5 or higher..see http://support.microsoft.com/kb/976413
-            trans.Options.DriAll = false;
-            trans.Options.IncludeHeaders = false;
-            trans.Options.IncludeIfNotExists = true;
-            trans.Options.SchemaQualify = true;
-
-            Utilities.Utility.WriteTrace("Scripting objects...");
-
-            StringCollection script = trans.ScriptTransfer();
-
-            foreach (string s in script)
-                result.AppendLine(s);
-
-
-            ////use this method to append single tables and all of their dependencies one at a time
-            ////the downside to this method is that dependent tables will once for each table that requires it
-            //Scripter scr = new Scripter(server);
-            //scr.Options.AnsiFile = true;
-            //scr.Options.ClusteredIndexes = true;
-            //scr.Options.DriAll = true;
-            //scr.Options.IncludeHeaders = false;
-            //scr.Options.IncludeIfNotExists = true;
-            //scr.Options.SchemaQualify = true;
-            //scr.Options.WithDependencies = true;
-
-            //UrnCollection u = new UrnCollection();
-            //foreach (Table tbl in db.Tables)
-            //{
-            //    if (CodeService.ShouldGenerate(tbl.Name, provider.Name))
-            //    {
-            //        u = new UrnCollection();
-            //        u.Add(tbl.Urn);
-            //        if (!tbl.IsSystemObject)
-            //        {
-            //            StringCollection sc = scr.Script(u);
-            //            foreach (string s in sc)
-            //                result.AppendLine(s);
-            //        }
-            //    }
-            //}
-
-            
-            result.AppendLine();
-            result.AppendLine();
-
-            return result.ToString();
         }
     }
 }

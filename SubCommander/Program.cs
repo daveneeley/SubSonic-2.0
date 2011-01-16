@@ -24,6 +24,7 @@ using System.Web.Configuration;
 using SubSonic.Migrations;
 using SubSonic.Sugar;
 using SubSonic.Utilities;
+using System.Text;
 
 namespace SubSonic.SubCommander
 {
@@ -210,6 +211,7 @@ namespace SubSonic.SubCommander
             Console.WriteLine("/useUtc");
             Console.WriteLine("/additionalNamespaces");
             Console.WriteLine("/useFixedScriptNames -  Write generated script files for scriptschema with fixed names");
+            Console.WriteLine("/scriptOnFilePerObject - Scripts one file per object (table, view, sproc, etc)");
         }
 
         /// <summary>
@@ -410,6 +412,8 @@ namespace SubSonic.SubCommander
             SetConfig(config, ConfigurationPropertyName.STRIP_VIEW_TEXT);
             SetConfig(config, ConfigurationPropertyName.USE_EXTENDED_PROPERTIES);
             SetConfig(config, ConfigurationPropertyName.USE_STORED_PROCEDURES);
+            //I think adding this would actually fail because that property doesn't exist on the provider.
+            //SetConfig(config, ConfigurationPropertyName.USE_FIXED_SCRIPT_NAMES);
             SetConfig(config, ConfigurationPropertyName.USE_UTC_TIMES);
             SetConfig(config, ConfigurationPropertyName.VIEW_STARTS_WITH);
             SetConfig(config, ConfigurationPropertyName.GROUP_OUTPUT);
@@ -704,24 +708,45 @@ namespace SubSonic.SubCommander
                         Utility.WriteTrace("Scripting Schema:" + provider.Name);
                         Utility.WriteTrace("#####################################");
                         //string db = GetArg("db");
-                        string outDir = GetOutputDirectory();
 
-                        string schema = DBScripter.ScriptSchema(sConn, provider);
-                        string outFileName =
-                            string.Format("{0}_{1}_{2}_{3}_{4}_Schema.sql", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
-                        string fixMe = GetArg(ConfigurationPropertyName.USE_FIXED_SCRIPT_NAMES);
-                        if (!String.IsNullOrEmpty(fixMe) && Boolean.Parse(fixMe) == true)
-                            outFileName = string.Format("{0}_Schema.sql", provider.Name);
-
-                        string outPath = Path.Combine(outDir, outFileName);
-
-                        OutputFile(outPath, schema);
+                        string groupOutput = GetArg(ConfigurationPropertyName.GROUP_OUTPUT);
+                        switch (groupOutput.ToLower())
+                        {
+                            case "schema":
+                            default:
+                                ScriptAndOutputFiles(sConn, provider, true);
+                                break;
+                            case "type":
+                                ScriptAndOutputFiles(sConn, provider, false);
+                                break;
+                            case "schemaandtype":
+                                ScriptAndOutputFiles(sConn, provider, true);
+                                ScriptAndOutputFiles(sConn, provider, false);
+                                break;
+                        }
                         Console.WriteLine("Finished!");
                     }
                 }
                 else
                     Console.WriteLine("Skipping provider {0} because it is not SQL Server based.", provider.Name);
 
+            }
+        }
+
+        private static void ScriptAndOutputFiles(string sConn, DataProvider provider, bool oneFile)
+        {
+            string outDir = GetOutputDirectory();
+            string fixedFormat = provider.Name;
+            string dateFormat = string.Format("{0}_{1}_{2}_{3}_{4}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
+            string fixMe = GetArg(ConfigurationPropertyName.USE_FIXED_SCRIPT_NAMES);
+            bool useFixedScriptNames = (!String.IsNullOrEmpty(fixMe) && Boolean.Parse(fixMe) == true);
+
+            Dictionary<string, StringBuilder> dict = DBScripter.ScriptSchema(sConn, provider, oneFile);
+            foreach (string key in dict.Keys)
+            {
+                string outFileName = string.Format("{0}_{1}{2}.sql", (useFixedScriptNames ? fixedFormat : dateFormat), key, (oneFile ? "_Schema" : ""));
+                string outPath = Path.Combine(outDir, outFileName);
+                OutputFile(outPath, dict[key].ToString());
             }
         }
 
@@ -961,7 +986,7 @@ namespace SubSonic.SubCommander
 
         private static string GetAdditionalPath(TableSchema.Table tableSchema, string generationType)
         {
-            string groupOutputValue = GetArg("groupOutput");
+            string groupOutputValue = GetArg(ConfigurationPropertyName.GROUP_OUTPUT);
             if (!string.IsNullOrEmpty(groupOutputValue))
             {
                 return GetOutputGroupingPath(tableSchema, groupOutputValue, generationType);                
