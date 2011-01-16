@@ -351,8 +351,10 @@ namespace SubSonic.SubCommander
             DataService.Providers = new DataProviderCollection();
 
             //instance a section - we'll set this manually for the DataService
-            SubSonicSection section = new SubSonicSection();
-            section.TemplateDirectory = GetArg(ConfigurationPropertyName.TEMPLATE_DIRECTORY);
+            SubSonicSection section = new SubSonicSection
+                                          {
+                                              TemplateDirectory = GetArg(ConfigurationPropertyName.TEMPLATE_DIRECTORY)
+                                          };
             CodeService.TemplateDirectory = section.TemplateDirectory;
 
             string providerName = GetArg(ConfigurationPropertyName.PROVIDER_TO_USE);
@@ -366,10 +368,12 @@ namespace SubSonic.SubCommander
 
             //set the properties
             DataProvider provider = DataService.Provider;
-            NameValueCollection config = new NameValueCollection();
+            NameValueCollection config = new NameValueCollection
+                                             {
+                                                 {"connectionStringName", "Default"}
+                                             };
 
             //need to add this for now
-            config.Add("connectionStringName", "Default");
 
             if(!string.IsNullOrEmpty(GetArg(ConfigurationPropertyName.TEMPLATE_DIRECTORY)))
                 config.Add(ConfigurationPropertyName.TEMPLATE_DIRECTORY, GetArg(ConfigurationPropertyName.TEMPLATE_DIRECTORY));
@@ -543,8 +547,6 @@ namespace SubSonic.SubCommander
         /// <returns></returns>
         private static string GetOutputDirectory()
         {
-            string result;
-
             //this can be an absolute reference, or a partial name of a directory
             //like "App_Code/Generated"
 
@@ -552,7 +554,7 @@ namespace SubSonic.SubCommander
             string thisOutput = GetArg("out");
 
             //if there's a drive specified, then it's absolute
-            result = thisOutput.Contains(":") ? thisOutput : Path.Combine(Directory.GetCurrentDirectory(), thisOutput);            
+            string result = thisOutput.Contains(":") ? thisOutput : Path.Combine(Directory.GetCurrentDirectory(), thisOutput);            
 
             //now, if the output directory doesn't exist, create it
             if(!Directory.Exists(result))
@@ -656,7 +658,7 @@ namespace SubSonic.SubCommander
                 string[] tables = DataService.GetOrderedTableNames(provider.Name);
 
                 string outDir = GetOutputDirectory();
-                if(outDir == String.Empty)
+                if (outDir == String.Empty)
                     outDir = Directory.GetCurrentDirectory();
 
                 Utility.WriteTrace("Scripting Data");
@@ -665,11 +667,11 @@ namespace SubSonic.SubCommander
                 string outFileName = string.Format("{0}_Data_{1}_{2}_{3}.sql", provider.Name, DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
                 string outPath = Path.Combine(outDir, outFileName);
 
-                using(StreamWriter sw = File.CreateText(outPath))
+                using (StreamWriter sw = File.CreateText(outPath))
                 {
-                    foreach(string tbl in tables)
+                    foreach (string tbl in tables)
                     {
-                        if(IsInList(tbl) || CodeService.ShouldGenerate(tbl, provider.Name))
+                        if (IsInList(tbl) || CodeService.ShouldGenerate(tbl, provider.Name))
                         {
                             Utility.WriteTrace(String.Format("Scripting Table: {0}", tbl));
                             string dataScript = DBScripter.ScriptData(tbl, provider.Name);
@@ -692,23 +694,29 @@ namespace SubSonic.SubCommander
 
             foreach(DataProvider provider in DataService.Providers)
             {
-                string sConn = provider.DefaultConnectionString; //GetConnnectionString();
-
-                if(sConn != String.Empty)
+                if (provider is SqlDataProvider)
                 {
-                    Utility.WriteTrace("Scripting Schema:" + provider.Name);
-                    Utility.WriteTrace("#####################################");
-                    //string db = GetArg("db");
-                    string outDir = GetOutputDirectory();
+                    string sConn = provider.DefaultConnectionString; //GetConnnectionString();
 
-                    string schema = DBScripter.ScriptSchema(sConn);
-                    string outFileName =
-                        string.Format("{0}_{1}_{2}_{3}_{4}_Schema.sql", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
-                    string outPath = Path.Combine(outDir, outFileName);
+                    if(sConn != String.Empty)
+                    {
+                        Utility.WriteTrace("Scripting Schema:" + provider.Name);
+                        Utility.WriteTrace("#####################################");
+                        //string db = GetArg("db");
+                        string outDir = GetOutputDirectory();
 
-                    OutputFile(outPath, schema);
-                    Console.WriteLine("Finished!");
+                        string schema = DBScripter.ScriptSchema(sConn);
+                        string outFileName =
+                            string.Format("{0}_{1}_{2}_{3}_{4}_Schema.sql", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
+                        string outPath = Path.Combine(outDir, outFileName);
+
+                        OutputFile(outPath, schema);
+                        Console.WriteLine("Finished!");
+                    }
                 }
+                else
+                    Console.WriteLine("Skipping provider {0} because it is not SQL Server based.", provider.Name);
+
             }
         }
 
@@ -1061,12 +1069,17 @@ namespace SubSonic.SubCommander
                 //get the view list
                 string[] views = DataService.GetViewNames(provider.Name);
                 string baseDir = GetOutSubDir(provider);
-                
+
+                if (views == null)
+                    continue;
+
                 foreach(string tbl in views)
                 {
                     if(IsInList(tbl) && !IsExcluded(tbl) && CodeService.ShouldGenerate(tbl, provider.Name))
                     {
                         TableSchema.Table tableSchema = DataService.GetSchema(tbl, provider.Name, TableType.View);
+                        if (tableSchema == null)
+                            continue;
                         string className = tableSchema.ClassName;
                         TurboTemplate tt = CodeService.BuildViewTemplate(tbl, language, provider);
 
