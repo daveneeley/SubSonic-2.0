@@ -303,6 +303,14 @@ namespace SubSonic
         /// <summary>
         /// Determines whether the column name of the constraint is actually a value that should be parameterized
         /// </summary>
+        public bool ParameterIsTableColumn
+        {
+            get { return ParameterValue is TableSchema.TableColumn ; }
+        }
+
+        /// <summary>
+        /// Determines whether the column name of the constraint is actually a value that should be parameterized
+        /// </summary>
         public bool ColumnNameShouldBeParameterized
         {
             get { return columnNameShouldBeParameterized; }

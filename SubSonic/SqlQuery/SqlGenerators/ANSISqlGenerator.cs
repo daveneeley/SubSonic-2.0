@@ -263,7 +263,7 @@ namespace SubSonic
                 {
                     columnName = c.Column.QualifiedName;
                     foundColumn = true;
-                    c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
+                    c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : String.Concat(col.ParameterName, currentConstraintIndex));
                 }
                 else
                 {
@@ -272,7 +272,7 @@ namespace SubSonic
                         columnName = col.QualifiedName;
                         c.DbType = col.DataType;
                         foundColumn = true;
-                        c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
+                        c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : String.Concat(col.ParameterName, currentConstraintIndex));
                     }
                 }
             }
@@ -303,12 +303,12 @@ namespace SubSonic
                     else
                         columnName = Utility.FastReplace(c.ConstructionFragment, col.ColumnName, col.QualifiedName, StringComparison.InvariantCultureIgnoreCase);
 
-                    c.ParameterName = String.Concat(col.ParameterName, currentConstraintIndex);
+                    c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : String.Concat(col.ParameterName, currentConstraintIndex));
                     c.DbType = col.DataType;
                 }
                 else
                 {
-                    c.ParameterName = Utility.PrefixParameter(rawColumnName, query.Provider) + currentConstraintIndex;
+                    c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : String.Concat(col.ParameterName, currentConstraintIndex));
                     columnName = c.ConstructionFragment;
                 }
             }
