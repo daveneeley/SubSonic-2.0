@@ -41,7 +41,7 @@ namespace SubSonic.SubCommander
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <returns></returns>
-        public static string ScriptSchema(string connectionString)
+        public static string ScriptSchema(string connectionString, DataProvider provider)
         {
             StringBuilder result = new StringBuilder();
 
@@ -53,28 +53,83 @@ namespace SubSonic.SubCommander
             Transfer trans = new Transfer(db);
 
             //set the objects to copy
-            trans.CopyAllTables = true;
-            trans.CopyAllDefaults = true;
-            trans.CopyAllUserDefinedFunctions = true;
-            trans.CopyAllStoredProcedures = true;
-            trans.CopyAllViews = true;
+            trans.CopyAllTables = false;
+            trans.CopyAllDefaults = false;
+            trans.CopyAllUserDefinedFunctions = true;//we don't have logic in SubSonic to decide which ones should or should not be generated, so better to be safe.
+            trans.CopyAllStoredProcedures = false;
+            trans.CopyAllViews = false;
+            trans.CopySchema = false;
+            trans.CopyAllLogins = false;
+
+            foreach (Table tbl in db.Tables)
+            {
+                if (!CodeService.ShouldGenerate(tbl.Name, provider.Name))
+                    continue;
+                Utilities.Utility.WriteTrace(string.Format("Adding table {0}", tbl.Name));
+                trans.ObjectList.Add(tbl);
+            }
+            foreach (View v in db.Views)
+            {
+                if (!CodeService.ShouldGenerate(v.Name, provider.Name))
+                    continue;
+                Utilities.Utility.WriteTrace(string.Format("Adding view {0}", v.Name));
+                trans.ObjectList.Add(v);
+            }
+            foreach (Microsoft.SqlServer.Management.Smo.StoredProcedure sp in db.StoredProcedures)
+            {
+                if (!provider.UseSPs || !CodeService.ShouldGenerate(sp.Name, provider.IncludeProcedures, provider.ExcludeProcedures, provider))
+                    continue;
+                Utilities.Utility.WriteTrace(string.Format("Adding sproc {0}", sp.Name));
+                trans.ObjectList.Add(sp);
+            }
+
             trans.CopyData = false;
-            trans.CopySchema = true;
             trans.DropDestinationObjectsFirst = true;
             trans.UseDestinationTransaction = true;
 
             trans.Options.AnsiFile = true;
-            trans.Options.ClusteredIndexes = true;
-            trans.Options.DriAll = true;
-            trans.Options.IncludeHeaders = true;
+            trans.Options.WithDependencies = false; //there is an error if you are running SQL Server 2008 SP1 that requires cumulative update 5 or higher..see http://support.microsoft.com/kb/976413
+            trans.Options.DriAll = false;
+            trans.Options.IncludeHeaders = false;
             trans.Options.IncludeIfNotExists = true;
             trans.Options.SchemaQualify = true;
 
+            Utilities.Utility.WriteTrace("Scripting objects...");
+
             StringCollection script = trans.ScriptTransfer();
 
-            foreach(string s in script)
+            foreach (string s in script)
                 result.AppendLine(s);
 
+
+            ////use this method to append single tables and all of their dependencies one at a time
+            ////the downside to this method is that dependent tables will once for each table that requires it
+            //Scripter scr = new Scripter(server);
+            //scr.Options.AnsiFile = true;
+            //scr.Options.ClusteredIndexes = true;
+            //scr.Options.DriAll = true;
+            //scr.Options.IncludeHeaders = false;
+            //scr.Options.IncludeIfNotExists = true;
+            //scr.Options.SchemaQualify = true;
+            //scr.Options.WithDependencies = true;
+
+            //UrnCollection u = new UrnCollection();
+            //foreach (Table tbl in db.Tables)
+            //{
+            //    if (CodeService.ShouldGenerate(tbl.Name, provider.Name))
+            //    {
+            //        u = new UrnCollection();
+            //        u.Add(tbl.Urn);
+            //        if (!tbl.IsSystemObject)
+            //        {
+            //            StringCollection sc = scr.Script(u);
+            //            foreach (string s in sc)
+            //                result.AppendLine(s);
+            //        }
+            //    }
+            //}
+
+            
             result.AppendLine();
             result.AppendLine();
 
