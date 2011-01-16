@@ -268,7 +268,7 @@ namespace SubSonic.Utilities
 
 		public static bool IsMatch(SubSonic.Comparison compare, object objA, object objB)
 		{
-			if (objA.GetType() != objB.GetType())
+			if ((objA == null && objB != null) || (objA != null && objB == null) || objA.GetType() != objB.GetType())
 				return false;
 
 			bool isIntegerVal = (typeof(int) == objA.GetType());
