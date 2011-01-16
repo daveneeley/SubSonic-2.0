@@ -433,14 +433,6 @@ namespace SubSonic
             }
             return _sps;
         }
-                        _sps.Add(sp);
-                        generatedSprocs++;
-                    }
-                }
-                Utility.WriteTrace(String.Format("Finished! {0} of {1} procedures generated.", generatedSprocs, sps.GetLength(0)));
-            }
-            return _sps;
-        }
 
         /// <summary>
         /// Gets the SQL.
