@@ -341,14 +341,26 @@ namespace SubSonic.Utilities
         /// <returns></returns>
         public static bool MatchesOne(string stringA, params string[] matchStrings)
         {
-            for(int i = 0; i < matchStrings.Length; i++)
+            return MatchesOne(SubSonic.Comparison.Equals, stringA, matchStrings);
+        }
+
+        /// <summary>
+        /// Evaluates an array of strings to determine if at least one item is a match using the specifed comparision
+        /// </summary>
+        /// <param name="stringA">The base comparison string.</param>
+        /// <param name="matchStrings">The match strings.</param>
+        /// <param name="comparison">The comparison to use on the string</param>
+        /// <returns></returns>
+        public static bool MatchesOne(SubSonic.Comparison comparison, string stringA, params string[] matchStrings)
+        {
+            for (int i = 0; i < matchStrings.Length; i++)
             {
-                if(IsMatch(stringA, matchStrings[i]))
+                if (IsMatch(comparison, stringA, matchStrings[i]))
                     return true;
             }
             return false;
         }
-
+        
         /// <summary>
         /// Performs a case-insensitive comparison of two passed strings, 
         /// with an option to trim the strings before comparison.
