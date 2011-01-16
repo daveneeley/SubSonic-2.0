@@ -209,6 +209,7 @@ namespace SubSonic.SubCommander
             Console.WriteLine("/useExtendedProperties");
             Console.WriteLine("/useUtc");
             Console.WriteLine("/additionalNamespaces");
+            Console.WriteLine("/useFixedScriptNames -  Write generated script files for scriptschema with fixed names");
         }
 
         /// <summary>
@@ -708,6 +709,12 @@ namespace SubSonic.SubCommander
                         string schema = DBScripter.ScriptSchema(sConn);
                         string outFileName =
                             string.Format("{0}_{1}_{2}_{3}_{4}_Schema.sql", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
+                        //this is cheating, but anyway
+                        //re-use this property to decide if we should use the default schema name or a fixed name
+                        string fixMe = GetArg(ConfigurationPropertyName.USE_FIXED_SCRIPT_NAMES);
+                        if (!String.IsNullOrEmpty(fixMe) && Boolean.Parse(fixMe) == true)
+                            outFileName = string.Format("{0}_Schema.sql", provider.Name);
+
                         string outPath = Path.Combine(outDir, outFileName);
 
                         OutputFile(outPath, schema);
