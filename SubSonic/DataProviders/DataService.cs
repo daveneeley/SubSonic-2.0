@@ -328,7 +328,7 @@ namespace SubSonic
         /// <returns></returns>
         public static string ScriptTableData(string tableName)
         {
-            return GetInstance().ScriptData(tableName);
+            return GetInstance().ScriptData(tableName).ToString();
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace SubSonic
         /// <returns></returns>
         public static string ScriptTableData(string tableName, string providerName)
         {
-            return GetInstance(providerName).ScriptData(tableName);
+            return GetInstance(providerName).ScriptData(tableName).ToString();
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace SubSonic
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
         /// <returns></returns>
-        public static string ScriptData(string tableName, string providerName)
+        public static Dictionary<string, StringBuilder> ScriptData(string tableName, string providerName)
         {
             return GetInstance(providerName).ScriptData(tableName, providerName);
         }

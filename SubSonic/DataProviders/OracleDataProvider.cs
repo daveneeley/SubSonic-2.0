@@ -20,6 +20,7 @@ using System.Data.Common;
 using System.Data.OracleClient;
 using System.Text;
 using SubSonic.Utilities;
+using System.Collections.Generic;
 
 namespace SubSonic
 {
@@ -995,7 +996,7 @@ namespace SubSonic
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
         /// <returns></returns>
-        public override string ScriptData(string tableName, string providerName)
+        public override Dictionary<string, StringBuilder> ScriptData(string tableName, string providerName)
         {
             StringBuilder result = new StringBuilder();
             if(CodeService.ShouldGenerate(tableName, providerName))
@@ -1050,6 +1051,7 @@ namespace SubSonic
                             {
                                 thisStatement.Append("'");
                                 thisStatement.Append(rdr[col.ColumnName].ToString().Replace("'", "''"));
+                                thisStatement.Append("'");
                             }
                         }
                         //add in a closing paren
@@ -1065,8 +1067,9 @@ namespace SubSonic
 
                 result.Append(statements.ToString());
             }
-
-            return result.ToString();
+            Dictionary<string, StringBuilder> dict = new Dictionary<string, StringBuilder>();
+            dict.Add(tableName, result);
+            return dict;
         }
 
         #endregion

@@ -19,6 +19,7 @@ using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace SubSonic.SubCommander
 {
@@ -33,9 +34,41 @@ namespace SubSonic.SubCommander
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
         /// <returns></returns>
-        public static string ScriptData(string tableName, string providerName)
+        public static Dictionary<string, StringBuilder> ScriptData(string providerName)
         {
-            return DataService.ScriptData(tableName, providerName);
+            string[] tables = DataService.GetOrderedTableNames(providerName);
+            Dictionary<string, StringBuilder> results = new Dictionary<string, StringBuilder>(tables.Length);
+
+            foreach (string tbl in tables)
+            {
+                if (!CodeService.ShouldGenerate(tbl, providerName))
+                    continue;
+
+                SubSonic.TableSchema.Table schema = Query.BuildTableSchema(tbl, providerName);
+                try
+                {
+                    int records = DataService.GetRecordCount(new Query(schema));
+
+                    if (records > 200000)
+                    {
+                        Utilities.Utility.WriteTrace(string.Format("Table {0} has {1} records, This may take a while...", tbl, records));
+                        //continue;
+                    }
+
+                    Utilities.Utility.WriteTrace(string.Format("Scripting Table Data: {0}", tbl));
+                    Dictionary<string, StringBuilder> dataScript = DataService.ScriptData(tbl, providerName);
+                    foreach (KeyValuePair<string, StringBuilder> kvp in dataScript)
+                    {
+                        results.Add(kvp.Key, kvp.Value);
+                    }                    
+                }
+                catch (Exception ex)
+                {
+                    Utilities.Utility.WriteTrace(string.Format("Scripting failed for table {0}. Error: {1}, Trace: {2}", tbl, ex.Message, ex.StackTrace));
+                }
+            }
+
+            return results;
         }
 
         /// <summary>

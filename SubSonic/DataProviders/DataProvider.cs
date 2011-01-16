@@ -1519,7 +1519,7 @@ namespace SubSonic
         /// </summary>
         /// <param name="tableName">Name of the table.</param>
         /// <returns></returns>
-        public string ScriptData(string tableName)
+        public Dictionary<string, StringBuilder> ScriptData(string tableName)
         {
             return ScriptData(tableName, DataService.Provider.Name);
         }
@@ -1530,7 +1530,7 @@ namespace SubSonic
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
         /// <returns></returns>
-        public abstract string ScriptData(string tableName, string providerName);
+        public abstract Dictionary<string, StringBuilder> ScriptData(string tableName, string providerName);
 
         //public abstract string ScriptSchema();
 

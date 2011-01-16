@@ -659,32 +659,14 @@ namespace SubSonic.SubCommander
             //string[] tables = DataService.GetTableNames(SubSonicConfig.ProviderName);
             foreach(DataProvider provider in DataService.Providers)
             {
-                //string[] tables = DataService.GetTableNames(provider.Name);
-                string[] tables = DataService.GetOrderedTableNames(provider.Name);
-
-                string outDir = GetOutputDirectory();
-                if (outDir == String.Empty)
-                    outDir = Directory.GetCurrentDirectory();
 
                 Utility.WriteTrace("Scripting Data");
                 Utility.WriteTrace("#####################################");
+                Utility.WriteTrace(string.Format("Provider {0}", provider.Name));
 
-                string outFileName = string.Format("{0}_Data_{1}_{2}_{3}.sql", provider.Name, DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-                string outPath = Path.Combine(outDir, outFileName);
+                Dictionary<string, StringBuilder> data = DBScripter.ScriptData(provider.Name);
 
-                using (StreamWriter sw = File.CreateText(outPath))
-                {
-                    foreach (string tbl in tables)
-                    {
-                        if (IsInList(tbl) || CodeService.ShouldGenerate(tbl, provider.Name))
-                        {
-                            Utility.WriteTrace(String.Format("Scripting Table: {0}", tbl));
-                            string dataScript = DBScripter.ScriptData(tbl, provider.Name);
-                            sw.Write(dataScript);
-                            sw.Write(Environment.NewLine);
-                        }
-                    }
-                }
+                ScriptAndOutputFiles(data, provider, true, "Data");
 
                 Utility.WriteTrace("Finished!");
             }
@@ -735,16 +717,20 @@ namespace SubSonic.SubCommander
 
         private static void ScriptAndOutputFiles(string sConn, DataProvider provider, bool oneFile)
         {
+            ScriptAndOutputFiles(DBScripter.ScriptSchema(sConn, provider, oneFile), provider, oneFile, "Schema");
+        }
+
+        private static void ScriptAndOutputFiles(Dictionary<string, StringBuilder> dict, DataProvider provider, bool oneFile, string appendToFileName)
+        {
             string outDir = GetOutputDirectory();
             string fixedFormat = provider.Name;
             string dateFormat = string.Format("{0}_{1}_{2}_{3}_{4}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Environment.UserName, provider.Name);
             string fixMe = GetArg(ConfigurationPropertyName.USE_FIXED_SCRIPT_NAMES);
             bool useFixedScriptNames = (!String.IsNullOrEmpty(fixMe) && Boolean.Parse(fixMe) == true);
-
-            Dictionary<string, StringBuilder> dict = DBScripter.ScriptSchema(sConn, provider, oneFile);
+            int counter = 0;
             foreach (string key in dict.Keys)
             {
-                string outFileName = string.Format("{0}_{1}{2}.sql", (useFixedScriptNames ? fixedFormat : dateFormat), key, (oneFile ? "_Schema" : ""));
+                string outFileName = string.Format("{0}_{3}{1}{2}.sql", (useFixedScriptNames ? fixedFormat : dateFormat), key, (oneFile || appendToFileName == "Data" ? "_" + appendToFileName : ""), (dict.Count > 1 ? counter.ToString() + "_" : ""));
                 string outPath = Path.Combine(outDir, outFileName);
                 OutputFile(outPath, dict[key].ToString());
             }
@@ -864,7 +850,7 @@ namespace SubSonic.SubCommander
         /// <returns>
         /// 	<c>true</c> if [is in list] [the specified table name]; otherwise, <c>false</c>.
         /// </returns>
-        private static bool IsInList(string tableName)
+        public static bool IsInList(string tableName)
         {
             string tableList = GetArg("tablelist");
             bool bOut = false;

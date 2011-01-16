@@ -1538,149 +1538,171 @@ ORDER BY OrdinalPosition ASC";
         /// <param name="tableName">Name of the table.</param>
         /// <param name="providerName">Name of the provider.</param>
         /// <returns></returns>
-        public override string ScriptData(string tableName, string providerName)
+        public override Dictionary<string, StringBuilder> ScriptData(string tableName, string providerName)
         {
+            
+            if (!CodeService.ShouldGenerate(tableName, providerName))
+                return new Dictionary<string, StringBuilder>();
+
+            List<StringBuilder> statementList = new List<StringBuilder>();
             StringBuilder result = new StringBuilder(1024, Int32.MaxValue);
-            if(CodeService.ShouldGenerate(tableName, providerName))
+            StringBuilder fieldList = new StringBuilder();
+            StringBuilder insertStatement = new StringBuilder();
+            StringBuilder statements = new StringBuilder();
+
+            StringBuilder disableConstraint = new StringBuilder();
+            disableConstraint.AppendFormat("ALTER TABLE [{0}] NOCHECK CONSTRAINT ALL", tableName);
+            disableConstraint.AppendLine();
+            disableConstraint.AppendFormat("GO");
+            disableConstraint.AppendLine();
+            disableConstraint.AppendFormat("ALTER TABLE [{0}] DISABLE TRIGGER ALL", tableName);
+            disableConstraint.AppendLine();
+            disableConstraint.AppendFormat("GO");
+            disableConstraint.AppendLine();
+
+            StringBuilder enableConstraint = new StringBuilder();
+            enableConstraint.AppendFormat("ALTER TABLE [{0}] CHECK CONSTRAINT ALL", tableName);
+            enableConstraint.AppendLine();
+            enableConstraint.AppendLine("GO");
+            enableConstraint.AppendLine();
+            enableConstraint.AppendFormat("ALTER TABLE [{0}] ENABLE TRIGGER ALL", tableName);
+            enableConstraint.AppendLine();
+            enableConstraint.AppendLine("GO");
+            enableConstraint.AppendLine();
+
+            insertStatement.AppendFormat("INSERT INTO [{0}] ", tableName);
+
+            //pull the schema for this table
+            TableSchema.Table table = Query.BuildTableSchema(tableName, providerName);
+
+            //build the insert list.
+            string lastColumnName = table.Columns[table.Columns.Count - 1].ColumnName;
+            foreach(TableSchema.TableColumn col in table.Columns)
             {
-                StringBuilder fieldList = new StringBuilder();
-                StringBuilder insertStatement = new StringBuilder();
-                StringBuilder statements = new StringBuilder();
+                fieldList.Append("[");
+                fieldList.Append(col.ColumnName);
+                fieldList.Append("]");
 
-                StringBuilder disableConstraint = new StringBuilder();
-                disableConstraint.AppendFormat("ALTER TABLE [{0}] NOCHECK CONSTRAINT ALL", tableName);
-                disableConstraint.AppendLine();
-                disableConstraint.AppendFormat("GO");
-                disableConstraint.AppendLine();
-                disableConstraint.AppendFormat("ALTER TABLE [{0}] DISABLE TRIGGER ALL", tableName);
-                disableConstraint.AppendLine();
-                disableConstraint.AppendFormat("GO");
-                disableConstraint.AppendLine();
+                if(!Utility.IsMatch(col.ColumnName, lastColumnName))
+                    fieldList.Append(", ");
+            }
 
-                StringBuilder enableConstraint = new StringBuilder();
-                enableConstraint.AppendFormat("ALTER TABLE [{0}] CHECK CONSTRAINT ALL", tableName);
-                enableConstraint.AppendLine();
-                enableConstraint.AppendLine("GO");
-                enableConstraint.AppendLine();
-                enableConstraint.AppendFormat("ALTER TABLE [{0}] ENABLE TRIGGER ALL", tableName);
-                enableConstraint.AppendLine();
-                enableConstraint.AppendLine("GO");
-                enableConstraint.AppendLine();
+            //complete the insert statement
+            insertStatement.Append("(");
+            insertStatement.Append(fieldList);
+            insertStatement.AppendLine(")");
 
-                insertStatement.AppendFormat("INSERT INTO [{0}] ", tableName);
-
-                //pull the schema for this table
-                TableSchema.Table table = Query.BuildTableSchema(tableName, providerName);
-
-                //build the insert list.
-                string lastColumnName = table.Columns[table.Columns.Count - 1].ColumnName;
-                foreach(TableSchema.TableColumn col in table.Columns)
+            int rowCount = 0;
+            //get the table data
+            using(IDataReader rdr = new Query(table).ExecuteReader())
+            {
+                while(rdr.Read())
                 {
-                    fieldList.Append("[");
-                    fieldList.Append(col.ColumnName);
-                    fieldList.Append("]");
-
-                    if(!Utility.IsMatch(col.ColumnName, lastColumnName))
-                        fieldList.Append(", ");
-                }
-
-                //complete the insert statement
-                insertStatement.Append("(");
-                insertStatement.Append(fieldList);
-                insertStatement.AppendLine(")");
-
-                //get the table data
-                using(IDataReader rdr = new Query(table).ExecuteReader())
-                {
-                    while(rdr.Read())
+                    StringBuilder thisStatement = new StringBuilder();
+                    thisStatement.Append(insertStatement);
+                    thisStatement.Append("VALUES(");
+                    //loop the schema and pull out the values from the reader
+                    foreach(TableSchema.TableColumn col in table.Columns)
                     {
-                        StringBuilder thisStatement = new StringBuilder();
-                        thisStatement.Append(insertStatement);
-                        thisStatement.Append("VALUES(");
-                        //loop the schema and pull out the values from the reader
-                        foreach(TableSchema.TableColumn col in table.Columns)
+                        if(!col.IsReadOnly)
                         {
-                            if(!col.IsReadOnly)
+                            object oData = rdr[col.ColumnName];
+                            if(oData != null && oData != DBNull.Value)
                             {
-                                object oData = rdr[col.ColumnName];
-                                if(oData != null && oData != DBNull.Value)
+                                if(col.DataType == DbType.Boolean)
                                 {
-                                    if(col.DataType == DbType.Boolean)
-                                    {
-                                        bool bData = Convert.ToBoolean(oData);
-                                        thisStatement.Append(bData ? "1" : " 0");
-                                    }
-                                    else if(col.DataType == DbType.Byte)
-                                        thisStatement.Append(oData);
-                                    else if(col.DataType == DbType.Binary)
-                                    {
-                                        thisStatement.Append("0x");
-                                        thisStatement.Append(Utility.ByteArrayToString((Byte[])oData).ToUpper());
-                                    }
-                                    else if(col.IsNumeric)
-                                        thisStatement.Append(oData);
-                                    else if(col.IsDateTime)
-                                    {
-                                        DateTime dt = DateTime.Parse(oData.ToString());
-                                        thisStatement.Append("'");
-                                        thisStatement.Append(dt.ToString("yyyy-MM-dd HH:mm:ss"));
-                                        thisStatement.Append("'");
-                                    }
-                                    else
-                                    {
-                                        if (col.DataType == DbType.String || col.DataType == DbType.StringFixedLength)
-                                            thisStatement.Append("N'");
-                                        else
-                                            thisStatement.Append("'");
-
-                                        thisStatement.Append(oData.ToString().Replace("'", "''"));
-                                        thisStatement.Append("'");
-                                    }
+                                    bool bData = Convert.ToBoolean(oData);
+                                    thisStatement.Append(bData ? "1" : " 0");
+                                }
+                                else if(col.DataType == DbType.Byte)
+                                    thisStatement.Append(oData);
+                                else if(col.DataType == DbType.Binary)
+                                {
+                                    thisStatement.Append("0x");
+                                    thisStatement.Append(Utility.ByteArrayToString((Byte[])oData).ToUpper());
+                                }
+                                else if(col.IsNumeric)
+                                    thisStatement.Append(oData);
+                                else if(col.IsDateTime)
+                                {
+                                    DateTime dt = DateTime.Parse(oData.ToString());
+                                    thisStatement.Append("'");
+                                    thisStatement.Append(dt.ToString("yyyy-MM-dd HH:mm:ss"));
+                                    thisStatement.Append("'");
                                 }
                                 else
-                                    thisStatement.Append("NULL");
+                                {
+                                    if (col.DataType == DbType.String || col.DataType == DbType.StringFixedLength)
+                                        thisStatement.Append("N'");
+                                    else
+                                        thisStatement.Append("'");
 
-                                if(!Utility.IsMatch(col.ColumnName, lastColumnName))
-                                    thisStatement.Append(", ");
+                                    thisStatement.Append(oData.ToString().Replace("'", "''"));
+                                    thisStatement.Append("'");
+                                }
                             }
+                            else
+                                thisStatement.Append("NULL");
+
+                            if(!Utility.IsMatch(col.ColumnName, lastColumnName))
+                                thisStatement.Append(", ");
                         }
-
-                        //add in a closing paren
-                        thisStatement.AppendLine(")");
-                        statements.Append(thisStatement);
                     }
-                    rdr.Close();
-                }
 
-                //if identity is set for the PK, set IDENTITY INSERT to true
-                result.AppendLine(disableConstraint.ToString());
-                if(table.PrimaryKey != null)
-                {
-                    if(table.PrimaryKey.AutoIncrement)
+                    //add in a closing paren
+                    thisStatement.AppendLine(")");
+                    statements.Append(thisStatement);
+                    rowCount++;
+                    if (rowCount > 0 && rowCount % 50000 == 0)
                     {
-                        result.Append("SET IDENTITY_INSERT [");
-                        result.Append(tableName);
-                        result.AppendLine("] ON ");
+                        statementList.Add(statements);
+                        statements = new StringBuilder();
                     }
                 }
-
-                result.Append("PRINT 'Begin inserting data in ");
-                result.Append(tableName);
-                result.AppendLine("'");
-                result.Append(statements);
-
-                if(table.PrimaryKey != null)
-                {
-                    if(table.PrimaryKey.AutoIncrement)
-                    {
-                        result.Append("SET IDENTITY_INSERT [");
-                        result.Append(tableName);
-                        result.AppendLine("] OFF ");
-                    }
-                }
-                result.AppendLine(enableConstraint.ToString());
+                rdr.Close();
             }
-            return result.ToString();
+            if (statements.Length > 0)
+            {
+                statementList.Add(statements);
+            }
+
+            Dictionary<string, StringBuilder> resultDict = new Dictionary<string, StringBuilder>();
+
+            //if identity is set for the PK, set IDENTITY INSERT to true
+            result.AppendLine(disableConstraint.ToString());
+            if(table.PrimaryKey != null)
+            {
+                if(table.PrimaryKey.AutoIncrement)
+                {
+                    result.Append("SET IDENTITY_INSERT [");
+                    result.Append(tableName);
+                    result.AppendLine("] ON ");
+                }
+            }
+
+            result.Append("PRINT 'Begin inserting data in ");
+            result.Append(tableName);
+            result.AppendLine("'");
+            resultDict.Add(string.Format("{0}_0", table.Name), result);
+            result = new StringBuilder();
+            for (int i = 0; i < statementList.Count; i++)
+            {
+                resultDict.Add(string.Format("{0}_{1}", table.Name, i + 1), statementList[i]);
+            }
+
+            if(table.PrimaryKey != null)
+            {
+                if(table.PrimaryKey.AutoIncrement)
+                {
+                    result.Append("SET IDENTITY_INSERT [");
+                    result.Append(tableName);
+                    result.AppendLine("] OFF ");
+                }
+            }
+            result.AppendLine(enableConstraint.ToString());
+            resultDict.Add(string.Format("{0}_{1}", table.Name, resultDict.Count), result);
+
+            return resultDict;
         }
 
         #endregion
