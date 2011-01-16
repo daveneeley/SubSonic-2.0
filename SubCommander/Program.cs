@@ -917,13 +917,45 @@ namespace SubSonic.SubCommander
             return outDir;
         }
 
+        private static void ClearOfflineProviders()
+        {
+            SetProvider();
+            Utility.WriteTrace("Checking for offline providers...");
+            List<DataProvider> list = new List<DataProvider>();
+            foreach (DataProvider provider in DataService.Providers)
+            {
+                try
+                {
+                    SubSonicRepository r = new SubSonicRepository(provider);
+                    if (!r.IsOnline())
+                    {
+                        list.Add(provider);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utility.WriteTrace(string.Format("Error message {0}", ex));
+                    list.Add(provider);
+                }
+            }
+            if (list.Count > 0)
+            {
+                Utility.WriteTrace("Clearing offline providers...");
+                foreach (DataProvider p in list)
+                {
+                    Utility.WriteTrace(string.Format("Provider {0} is offline. No files will be generated.", p.Name));
+                    DataService.Providers.Remove(p.Name);
+                }
+            }
+        }
+
         /// <summary>
         /// Generates the tables.
         /// </summary>
         private static void GenerateTables()
         {
             //if (DataService.Provider == null)
-            SetProvider();
+            ClearOfflineProviders();
 
             language = CodeLanguageFactory.GetByShortName(GetArg("lang"));
             //string usings = ParseUtility.GetUsings(language);
@@ -1018,7 +1050,7 @@ namespace SubSonic.SubCommander
         /// </summary>
         private static void GenerateODSControllers()
         {
-            SetProvider();
+            ClearOfflineProviders();
 
             language = CodeLanguageFactory.GetByShortName(GetArg("lang"));
 
@@ -1088,7 +1120,7 @@ namespace SubSonic.SubCommander
         /// </summary>
         private static void GenerateViews()
         {
-            SetProvider();
+            ClearOfflineProviders();
 
             language = CodeLanguageFactory.GetByShortName(GetArg("lang"));
 
@@ -1129,7 +1161,7 @@ namespace SubSonic.SubCommander
         /// </summary>
         private static void GenerateSPs()
         {
-            SetProvider();
+            ClearOfflineProviders();
 
             language = CodeLanguageFactory.GetByShortName(GetArg("lang"));
 
@@ -1159,7 +1191,7 @@ namespace SubSonic.SubCommander
         /// </summary>
         private static void GenerateStructs()
         {
-            SetProvider();
+            ClearOfflineProviders();
 
             language = CodeLanguageFactory.GetByShortName(GetArg("lang"));
 
