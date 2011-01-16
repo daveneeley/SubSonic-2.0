@@ -173,6 +173,7 @@ namespace SubSonic
         public const string VIEW_BASE_CLASS = "viewBaseClass";
         public const string VIEW_STARTS_WITH = "viewStartsWith";
         public const string GROUP_OUTPUT = "groupOutput";
+        public const string USE_FIXED_SCRIPT_NAMES = "useFixedScriptNames";
     }
 
     /// <summary>
