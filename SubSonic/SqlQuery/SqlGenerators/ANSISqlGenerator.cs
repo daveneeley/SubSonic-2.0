@@ -308,7 +308,7 @@ namespace SubSonic
                 }
                 else
                 {
-                    c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : String.Concat(col.ParameterName, currentConstraintIndex));
+                    c.ParameterName = (c.ParameterIsTableColumn ? ((TableSchema.TableColumn)c.ParameterValue).QualifiedName : (Utility.PrefixParameter(rawColumnName, query.Provider) + currentConstraintIndex));
                     columnName = c.ConstructionFragment;
                 }
             }
