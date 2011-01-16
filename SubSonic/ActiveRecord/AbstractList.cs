@@ -288,7 +288,7 @@ namespace SubSonic
 
         #region Utility
         /// <summary>
-        /// Returns the values in a specified column within the collection as a List
+        /// Returns the values in a specified column for each item within the collection as a List
         /// </summary>
         /// <typeparam name="T">The type of the items in the new list</typeparam>
         /// <param name="col">The column containing the values</param>
@@ -299,6 +299,31 @@ namespace SubSonic
             foreach (ItemType it in this)
             {
                 list.Add(it.GetColumnValue<T>(col.PropertyName));
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Returns the values in a specified property for each item within the collection as a list
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        public List<T> ToList<T>(string propertyName)
+        {
+            List<T> list = new List<T>();
+            if (this.Items.Count == 0)
+                return list;
+
+            System.Reflection.PropertyInfo pi = this.Items[0].GetType().GetProperty(propertyName);
+
+            if (pi == null || !pi.CanRead)
+                return list;
+
+            foreach (ItemType it in this)
+            {
+                object val = pi.GetValue(it, null);
+                list.Add((T)Convert.ChangeType(val, typeof(T)));
             }
             return list;
         }
